@@ -1,0 +1,1749 @@
+---
+title: "SOE_2026_2027_Analysis"
+author: "Mariah D. Caballero"
+format: html
+editor: visual
+---
+
+## Welcome!
+
+This document is intended to support a user with little to no coding experience. After downloading the "SOE_2026-27" folder and installing R and RStudio (intructions here), you should feel empowered to generate the figures and tables below to support your own SOE report (report template here).
+
+For any additional questions or ideas, please don't hesitate to reach out to [Mariah Caballero](mailto:mc152@wellesley.edu) (Wellesley College) or [Mike Vandenbergh](mailto:michael.vandenbergh@vanderbilt.edu) (Vanderbilt Law School).
+
+## 2026 State of the Environment Report
+
+The purpose of this document is to compile all of the analysis needed to create the figures/tables for your own State of the Environment report. This includes:
+
+- **Table 1** Change in land use percentage between 2001 and present.
+- **Figure 1** Percent change in gross emissions relative to 1990 levels, from 1991 to present.
+- **Figure 2** Emissions by sector from 1990 to present.
+- **Figure 3** Percent of electricity production from non-carbon sources, from 1990 to present.
+- **Figure 4** Projected per capita emissions (tons CO2), from present to 2050.
+- **Figure 5** Change in total energy production and energy production as a proportion of total energy production by source.
+- **Figure 6** Average annual household energy costs and Energy Burden.
+- **Figure 7** Average PM 2.5 levels.
+- **Table 2** Transportation emissions, measured as the tons of CO2 per resident emitted on-road.
+- **Figure 8** Percentage of Community Water Systems (CWS) with one or more health-based violations between 2018-present.
+- **Table 4** Number of rivers, streams, and lakes that exceeded at least one benchmark for concentration of toxic materials or received at least one "Poor" grade.
+- **Figure 9** Percentile-ranked share of properties at risk of flood in 30 years.
+
+## Set-up
+
+Here, we'll load the packages necessary for recreating the code. In this code, the only thing you'll need to change is the directory path where you've downloaded the **"SOE_2026-27"** folder. You'll notice a code chunk that says \[ADD DIRECTORY HERE\]. Go ahead and copy and paste your file path in "".
+
+Once you've changed your directory, run this code chunk by pressing the green triangle on the upper right corner.
+
+```{r}
+#| label: load packages and set directory
+#| message: false
+#| warning: false
+
+# load packages 
+install.packages("pacman")
+library(pacman)
+p_load(tidyverse,
+       NatParksPalettes,
+       showtext,
+       lubridate, 
+       readxl,
+       knitr,
+       gt,
+       scales,
+       units,
+       RColorBrewer,
+       rprojroot,
+       janitor,
+       glue,
+       hrbrthemes, 
+       eia, 
+       biscale, 
+       tigris, 
+       foreign,
+       patchwork, 
+       FedData, 
+       sf, 
+       terra, 
+       ggpubr
+)
+
+# set root here!
+# example: root <- "~/Desktop/2026_2027_SOE"
+root <- "[ADD DIRECTORY HERE]"
+
+# this code will note where your data is, and set your home directory for you.
+setwd(root)
+```
+
+To ensure the figures and tables are all consistent, let's set some global aesthetics (e.g., font, theme, and color palette).
+
+No need to change anything here, just press the green triangle in the upper right.
+
+```{r}
+#| label: set consistent color palette and theme
+#| message: false
+#| warning: false
+
+# Load Raleway from Google Fonts
+font_add_google("Raleway", "raleway")
+showtext_auto()
+
+# Global ggplot theme
+theme_set(
+  theme_minimal(base_family = "raleway", base_size = 18) +
+    theme(
+      plot.title    = element_text(family = "raleway", face = "bold"),
+      plot.subtitle = element_text(family = "raleway"),
+      axis.title    = element_text(family = "raleway"),
+      axis.text     = element_text(family = "raleway"),
+      legend.text   = element_text(family = "raleway"),
+      strip.text    = element_text(family = "raleway")
+    )
+)
+
+```
+
+Great! Now we'll set our USEPA region, our state, and our county. Replace all text where you see brackets, and ensure that you use the same capitalization, quotations, and comma patterns (Rstudio is sensitive).
+
+Once you've added your USEPA regions, state of interest, and county, press the green triangle.
+
+```{r}
+#| label: set county, state, and epa region
+#| message: false
+#| warning: false
+
+# set region here!
+# example: region <- c("CT", "ME", "MA", "NH", "RI", "VT")
+region <- c([ADD REGIONAL STATE ABBREVIATIONS HERE])
+
+# set region state labels here! 
+# example: region_state_labels <- c("Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont")
+region <- c([ADD REGIONAL STATE LABELS HERE])
+
+# set region label here!
+# example: region_label <- "USEPA Region 1"
+region_label <- "[ADD REGIONAL LABEL HERE]"
+
+# set state here!
+# example: state_abb <- "MA"
+state_abb <- "[ADD STATE ABBREVIATION HERE]"
+
+# set state label here!
+# example: state_label <- "Massachusetts"
+state_label <- "[ADD STATE LABEL HERE]"
+
+# set county here! 
+# example: county <- "Norfolk"
+county <- "[ADD COUNTY NAME HERE]"
+
+# set county label here!
+# example: county_label <- "Norfolk County"
+county_label <- "[ADD COUNTY LABEL HERE]"
+```
+
+### Land Use
+
+#### Table 1. Change in Land Use Land Cover
+
+Let's start by assessing change in land use land cover in the your geographies of interest. For the year 2026, we'll assess 2005 and 2025. National Land Cover Data can be accessed [here](https://www.mrlc.gov/data). In this chunk, I'm going to create shapefiles of 
+all counties, states, and regions of interest, then use a really long function 
+to reclass and count the land cover types in all four geographies, then calculate
+the percent change between 2005 and 2025. 
+
+There is no need to make any changes here, just press the green triangle.
+
+```{r}
+#| label: pull shapefiles and create percent change function
+#| message: false
+#| warning: false
+
+# pull geographic shapefiles 
+region_sf <- tigris::states(cb = TRUE, year = 2024) |>
+  filter(
+    STUSPS %in% c(region)) |>
+  summarise(
+    NAME = "EPA Region",
+    geometry = st_union(geometry)) |> st_transform(4326) |> vect()
+
+state_sf <- tigris::states(cb = TRUE, year = 2024) |>
+  filter(STUSPS == state_abb) |> st_transform(4326) |> vect()
+
+county_sf <- tigris::counties(state = state_abb, cb = TRUE, year = 2024) |>
+  filter(NAME == county) |> st_transform(4326) |> vect()
+
+# load NLCD files
+nlcd_2005 <- rast("data/LULC/Annual_NLCD_LndCov_2005_CU_C1V2/Annual_NLCD_LndCov_2005_CU_C1V2.tif")
+# Read 2025 raster
+nlcd_2025 <- rast("data/LULC/Annual_NLCD_LndCov_2025_CU_C1V2/Annual_NLCD_LndCov_2025_CU_C1V2.tif")
+
+# really long function
+nlcd_zonal_stats <- function(
+    nlcd_2005,
+    nlcd_2025,
+    geography_files
+) {
+  
+  calc_stats <- function(r, sf, geography, year) {
+    
+    # Count NLCD classes within each polygon
+    x <- terra::extract(
+      r,
+      sf,
+      fun = table,
+      na.rm = TRUE
+    ) |>
+      as.data.frame()
+    
+    # Rename columns
+    names(x)[1] <- "zone_id"
+    names(x)[2] <- "ClassName"
+    names(x)[3] <- "Count"
+    
+    # Reclassify NLCD classes
+    x <- x |>
+      mutate(
+        NewClass = recode(
+          ClassName,
+          "Open Water" = "Open Water",
+          "Perennial Ice/Snow" = "Other",
+          "Developed Open Space" = "Developed",
+          "Developed Low Intensity" = "Developed",
+          "Developed Medium Intensity" = "Developed",
+          "Developed High Intensity" = "Developed",
+          "Barren Land" = "Barren Land",
+          "Deciduous Forest" = "Forest",
+          "Evergreen Forest" = "Forest",
+          "Mixed Forest" = "Forest",
+          "Dwarf Scrub" = "Other",
+          "Shrub/Scrub" = "Other",
+          "Grassland/Herbaceous" = "Grassland, Hay & Agriculture",
+          "Sedge/Herbaceous" = "Other",
+          "Lichens" = "Other",
+          "Moss" = "Other",
+          "Pasture/Hay" = "Grassland, Hay & Agriculture",
+          "Cultivated Crops" = "Grassland, Hay & Agriculture",
+          "Woody Wetlands" = "Wetlands",
+          "Emergent Herbaceous Wetlands" = "Wetlands"
+        )
+      ) |>
+      
+      # Combine the original NLCD classes
+      group_by(
+        zone_id,
+        NewClass
+      ) |>
+      summarise(
+        Count = sum(Count, na.rm = TRUE),
+        .groups = "drop"
+      ) |>
+      
+      # Calculate percentage within each polygon
+      group_by(zone_id) |>
+      mutate(
+        Percent = 100 * Count / sum(Count, na.rm = TRUE)
+      ) |>
+      ungroup() |>
+      
+      # Add geography and year
+      mutate(
+        geography = geography,
+        year = year
+      ) |>
+      
+      select(
+        geography,
+        zone_id,
+        year,
+        NewClass,
+        Count,
+        Percent
+      )
+    
+    x
+  }
+  
+  # Calculate statistics for all four geographies and both years
+  yearly <- map_dfr(
+    names(geography_files),
+    function(geography) {
+      
+      sf <- geography_files[[geography]]
+      
+      bind_rows(
+        calc_stats(
+          nlcd_2005,
+          sf,
+          geography,
+          2005
+        ),
+        calc_stats(
+          nlcd_2025,
+          sf,
+          geography,
+          2025
+        )
+      )
+    }
+  )
+  
+  # Calculate 2005–2025 change
+  change <- yearly |>
+    pivot_wider(
+      id_cols = c(
+        geography,
+        zone_id,
+        NewClass
+      ),
+      names_from = year,
+      values_from = c(
+        Count,
+        Percent
+      ),
+      names_glue = "{.value}_{year}"
+    ) |>
+    mutate(
+      CountChange = Count_2025 - Count_2005,
+
+      CountPercentChange = case_when(
+        Count_2005 == 0 ~ NA_real_,
+        TRUE ~ 100 * CountChange / Count_2005
+      ),
+
+      PercentChange = case_when(
+        Percent_2005 == 0 ~ NA_real_,
+        TRUE ~ 100 *
+          (Percent_2025 - Percent_2005) /
+          Percent_2005
+      )
+    )
+
+  list(
+    yearly = yearly,
+    change = change
+  )
+}
+
+
+```
+
+Now, we'll create a list of our geographies of interest, and run the actual analysis.
+Please note that this is a pretty computationally heavy analysis, so it's likely 
+going to take over ten minutes to run. 
+
+Note that I don't calculate the percent change for the whole US because it is way
+too much data, you'll crash your computer. No need to do anything here, just press 
+green triangle and be patient. 
+
+```{r}
+#| label: pull shapefiles and create percent change function
+#| message: false
+#| warning: false
+
+geographies <- list(
+  county = county_sf,
+  state = state_sf,
+  region = region_sf
+)
+
+results <- nlcd_zonal_stats(
+  nlcd_2005,
+  nlcd_2025,
+  geographies
+)
+
+rm(nlcd_2005, nlcd_2025)
+```
+
+Excellent, we have our first table! Let's do a bit of formatting now. 
+```{r}
+#| label: format final table and save
+#| message: false
+#| warning: false
+
+change <- results$change
+
+# reshape the results a bit
+table <- change |> 
+ select(geography, NewClass, Percent_2005, Percent_2025, PercentChange) |>
+  pivot_wider(
+    names_from  = geography,
+    values_from = c(Percent_2005, Percent_2025, PercentChange),
+    names_glue  = "{geography}_{.value}") |>
+  select(
+    NewClass,
+    starts_with("county_"),
+    starts_with("state_"),
+    starts_with("region_")) 
+
+# format gt table: Note that you can replace "County", "State", and "Region"
+# with more informative titles in the "tab_spanner()" functions. 
+
+format_table <- table |> 
+  arrange(desc(county_Percent_2005)) |> 
+gt() |>
+  tab_spanner(label = "County", columns = starts_with("county_")) |>
+  tab_spanner(label = "State",  columns = starts_with("state_")) |>
+  tab_spanner(label = "Region", columns = starts_with("region_")) |>
+  cols_label(
+    NewClass                = "Land Cover Class",
+    county_Percent_2005    = "2005 % of Total Area",
+    county_Percent_2025    = "2025 % of Total Area",
+    county_PercentChange   = "% Change",
+    state_Percent_2005     = "2005 % of Total Area",
+    state_Percent_2025     = "2025 % of Total Area",
+    state_PercentChange    = "% Change",
+    region_Percent_2005    = "2005 % of Total Area",
+    region_Percent_2025    = "2025 % of Total Area",
+    region_PercentChange   = "% Change") |> 
+  fmt_percent(
+    columns      = -NewClass,
+    decimals     = 1,
+    scale_values = FALSE) |>
+  opt_table_font(
+    font = list(
+      google_font("Raleway"),
+      default_fonts())) |> 
+  tab_style(
+    style     = cell_text(weight = "bold"),
+    locations = list(
+      cells_column_labels(everything()),
+      cells_column_spanners(everything())
+    )
+  ) 
+
+# save! 
+gtsave(
+format_table, 
+  filename = "Tables/land_use_change_table.docx"
+)
+
+rm(county_sf, geographies, nlcd_2005, nlcd_2025, region_sf, state_sf, nlcd_zonal_stats, 
+   results, change, format_table, table)
+```
+
+## Climate
+
+#### Figure 1. Percent change in gross emissions, 1990 to 2023.
+This chart normally requires data downloaded from the USEPA Greenhouse Gas 
+Inventory ([link here](https://cfpub.epa.gov/ghgdata/inventoryexplorer/#iallsectors/allsectors/allgas/gas/all)). However, this time we'll be using data FOIA'd from the 
+Environmental Defense Fund (link here), because the USEPA was slow-walking the
+2025 data release ([FOIA request here](https://www.edf.org/freedom-information-act-documents-epas-greenhouse-gas-inventory)).
+
+I'll do a bit of data cleaning and reshaping before I can plot it, but do feel free 
+to change the legend names (a few lines belowe where it says "plot!") to something 
+a bit more descript (e.g.,"State" can be labeled as "Massachusetts", and 
+"Region" can be labeled as "USEPA Region 1"). 
+
+```{r}
+#| label: fig 1 data clean and plot
+#| message: false
+#| warning: false
+
+emissions <- read_excel("data/gross_emissions/DRAFT_AllStateGHGdata_90-23.xlsx", 
+    sheet = "Data by Economic Sectors") 
+
+# pivot data, select only carbon emissions, and remove land sink data 
+long_df <- emissions |> 
+  filter(ghg == "Carbon Dioxide") |> 
+  pivot_longer(
+    cols          = starts_with("Y"),
+    names_to      = "year",
+    names_prefix  = "Y",
+    names_transform = list(year = as.integer),
+    values_to     = "emissions"
+  ) |> 
+  filter(econ_sector != "LULUCF Sector Net Total")
+
+# create list of geographies
+geo_defs <- list(
+  National = unique(emissions$geo_ref),  
+  State    = state_abb,
+  Region   = region
+)
+
+# summarize emissions by geography 
+gross_by_geo <- map_dfr(
+  geo_defs,
+  ~ long_df |>
+    filter(geo_ref %in% .x) |>
+    group_by(year) |>
+    summarise(gross_total_emissions = sum(emissions, na.rm = TRUE), .groups = "drop"),
+  .id = "geography"
+)
+
+# calculate percent change from 1990 baseline
+gross_with_pct_change <- gross_by_geo |>
+  group_by(geography) |>
+  arrange(year, .by_group = TRUE) |>
+  mutate(
+    baseline_1990 = gross_total_emissions[year == 1990],
+    pct_change_from_1990 = (gross_total_emissions - baseline_1990) / baseline_1990 * 100
+  ) |>
+  ungroup() |>
+  select(geography, year, gross_total_emissions, pct_change_from_1990)
+
+# plot! 
+p <- gross_with_pct_change |> 
+  ggplot(aes(x=year, y=pct_change_from_1990/100, group = geography, color = geography)) +
+  geom_line(size=1, alpha=0.9) + 
+  scale_color_manual(values = natparks.pals("KingsCanyon", 3), 
+                     name = "Geography", labels = c("National" = "United States", 
+                                  "Region" = region_label, 
+                                  "State" = state_label)) + 
+   geom_hline(yintercept = 0) +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(labels = scales::percent) + 
+   labs(x = "Year", 
+       y = "Percent Change from 1990", 
+       color = "")
+
+# save! 
+ggsave(
+  filename = "Figures/emissions_from_1990.png", 
+  plot = p, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+```
+
+
+#### Figure 2. Emissions by Sector, 1990 to present.
+We'll use the same dataset here, just summarized differently, so that we can plot 
+the change in sector over time. 
+```{r}
+#| label: fig 2 data clean and plot
+#| message: false
+#| warning: false
+
+# remove US territories as a sector 
+long_df <- long_df |> 
+  filter(econ_sector != "U.S. Territories")
+
+# summarize emissions by geography and sector
+gross_by_geo_sector <- map_dfr(
+  geo_defs,
+  ~ long_df |>
+    filter(geo_ref %in% .x) |>
+    group_by(econ_sector, year) |>
+    summarise(gross_total_emissions = sum(emissions, na.rm = TRUE), .groups = "drop") |>
+    group_by(year) |>
+    mutate(
+      annual_total_emissions = sum(gross_total_emissions, na.rm = TRUE),
+      sector_pct_of_total    = gross_total_emissions / annual_total_emissions * 100
+    ) |>
+    ungroup(),
+  .id = "geography"
+)
+
+# rename labels 
+new_labels <- c("National" = "United States", 
+                "Region" = region_label, 
+                "State" = state_label)
+
+# plot! 
+p <- gross_by_geo_sector |> 
+  ggplot(aes(x=year, y=sector_pct_of_total/100, fill=econ_sector)) + 
+    geom_area(alpha=0.9, linewidth = 0.3, color = "black") + 
+  scale_fill_manual(values = natparks.pals("KingsCanyon", 6), 
+                  name = "") + 
+  facet_wrap(~geography, labeller = labeller(geography = new_labels)) + 
+  labs(x = "Year", 
+       y = "Percent of Emissions") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(labels = scales::percent) 
+
+# save! 
+ggsave(
+  filename = "Figures/emissions_by_sector.png", 
+  plot = p, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+rm(emissions, geo_defs, gross_by_geo, gross_by_geo_sector, gross_with_pct_change, 
+   line_graph, long_df, new_labels, p)
+```
+
+## Energy
+
+### Figure 3. Percent of electricity production from non-carbon sources
+This code uses data from the EIA's Historical State Dataset. Specifically, 
+we use the *Net Generation by State by Type of Producer by Energy Source* table
+which can be accessed [here](https://www.eia.gov/electricity/data/state/). 
+
+I'll do a bit of data cleaning and reshaping before I can plot it, but do feel free 
+to change the legend names (a few lines belowe where it says "plot!") to something 
+a bit more descriptive (e.g.,"State" can be labeled as "Massachusetts", and 
+"Region" can be labeled as "USEPA Region 1"). 
+
+*Note that I assign "carbon" generating sources as coal, natural gas, petroleum, 
+other gases, other biomass, wood and wood-derived fuels, and other because they 
+are combustion sources (some renewable energy sources include wood and biomass as 
+renewable, but I believe combustion is combustion).
+
+```{r}
+#| label: fig 3 data clean and plot
+#| message: false
+#| warning: false
+
+# read data 
+state_gen <- read_excel("data/EIA_860/annual_generation_state.xls", 
+    skip = 1) |> 
+  clean_names() |> 
+  filter(!state %in% c("US-TOTAL", "US-Total") & !is.na(state)) |> 
+  filter(energy_source != "Total")
+
+# create list of geographies
+geo_defs <- list(
+  National = unique(state_gen$state),  
+  State    = state_abb,
+  Region   = region
+)
+
+# summarize emissions by geography 
+energy_by_geo <- map_dfr(
+  geo_defs,
+  ~ state_gen |>
+    filter(state %in% .x) |>
+    group_by(year, energy_source) |>
+    summarise(total_energy_mwh = sum(generation_megawatthours, na.rm = TRUE), .groups = "drop"),
+  .id = "geography"
+)
+
+# classify generation types as carbon or non-carbon
+source_classification <- tribble(
+  ~energy_source,                    ~carbon_class,
+  "Coal",                            "carbon",
+  "Natural Gas",                     "carbon",
+  "Petroleum",                       "carbon",
+  "Other Gases",                     "carbon",
+  "Other Biomass",                   "carbon",
+  "Wood and Wood Derived Fuels",     "carbon",
+  "Nuclear",                         "non_carbon",
+  "Hydroelectric Conventional",      "non_carbon",
+  "Geothermal",                      "non_carbon",
+  "Solar Thermal and Photovoltaic",  "non_carbon",
+  "Wind",                            "non_carbon",
+  "Pumped Storage",                  "non_carbon",
+  "Other",                           "carbon"
+)
+
+# join it to my data 
+energy_by_geo <- energy_by_geo |>
+  left_join(source_classification, by = "energy_source")
+
+# calculate % non-carbon per year 
+non_carbon_pct <- energy_by_geo |>
+  group_by(geography, year) |>
+  summarise(
+    total_generation_mwh     = sum(total_energy_mwh, na.rm = TRUE),
+    non_carbon_generation_mwh = sum(total_energy_mwh[carbon_class == "non_carbon"], na.rm = TRUE),
+    unclassified_mwh          = sum(total_energy_mwh[is.na(carbon_class)], na.rm = TRUE),
+    pct_non_carbon            = non_carbon_generation_mwh / total_generation_mwh * 100,
+    .groups = "drop"
+  )
+
+# plot!
+p <- non_carbon_pct |> 
+  ggplot(aes(x=year, y=pct_non_carbon/100, group = geography, color = geography)) +
+  geom_line(size=1, alpha=0.9) + 
+  scale_color_manual(values = natparks.pals("KingsCanyon", 3), 
+                     name = "Geography", labels = c("National" = "United States", 
+                                  "Region" = region_label, 
+                                  "State" = state_label)) + 
+  theme(legend.position = "bottom") +
+  scale_y_continuous(labels = scales::percent) + 
+   labs(x = "Year", 
+       y = "Percent of Non-Carbon Generation", 
+       color = "")
+# save
+ggsave(
+  filename = "Figures/non_carbon_gen.png", 
+  plot = p, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+rm(energy_by_geo, geo_defs, long_df, non_carbon_pct, source_classification, state_gen, p)
+```
+
+
+### Figure 4. Projected per capita emissions from present to 2050
+
+This data can be accessed from table 18 in the USEIA Energy Outlook ([link here](https://www.eia.gov/outlooks/aeo/data/browser/#/?id=17-AEO2026&region=1-9&cases=cb2026&start=2025&end=2050&f=A&linechart=cb2026-d021826b.3-17-AEO2026.1-9&map=cb2026-d021826b.3-17-AEO2026.1-9&ctype=linechart&sid=~&sourcekey=0)).
+
+Below, I add the data in for the US, and read in regional data (*you'll need to
+look up your region of interest and add the file path in the data folder to 
+read in that data*. You can view the EIA maps, which are different from EPA regions 
+[here](https://www.eia.gov/outlooks/aeo/data/browser/#/?id=17-AEO2026&region=1-9&cases=cb2026&start=2025&end=2050&f=A&linechart=cb2026-d021826b.3-17-AEO2026.1-9&map=cb2026-d021826b.3-17-AEO2026.1-9&ctype=map&sid=~&sourcekey=0)). 
+
+```{r}
+#| label: fig 4 data clean and plot
+#| message: false
+#| warning: false
+
+# read in US AEO data 
+aeo_US <- read_csv("data/AEO_Projections/aeo_US_sector_source.csv", 
+    skip = 4) |> 
+  clean_names() |> 
+  filter(full_name == "Carbon Dioxide: Per-Capita Carbon Dioxide Emissions: Counterfactual Baseline case") |> 
+  mutate(geography = "National") |>
+  pivot_longer(
+    cols            = matches("^x20\\d{2}$"), 
+    names_to        = "year",
+    names_prefix    = "x",
+    names_transform  = list(year = as.integer),
+    values_to       = "mmt_co2_per_cap"
+  ) |>
+  select(geography, year, mmt_co2_per_cap)
+
+# read in regional data [change file path and geography label]
+aeo_region <- read_csv("data/AEO_Projections/[CHANGE CSV FILE PATH HERE].csv", 
+    skip = 4) |> 
+  clean_names() |> 
+  filter(full_name == "Carbon Dioxide: Per-Capita Carbon Dioxide Emissions: Counterfactual Baseline case") |> 
+  mutate(geography = "[ADD LABEL HERE]") |>
+  pivot_longer(
+    cols            = matches("^x20\\d{2}$"), 
+    names_to        = "year",
+    names_prefix    = "x",
+    names_transform  = list(year = as.integer),
+    values_to       = "mmt_co2_per_cap"
+  ) |>
+  select(geography, year, mmt_co2_per_cap)
+
+# bind rows
+aeo_join <- aeo_US |> bind_rows(aeo_region) 
+
+# plot! 
+p <- aeo_join |> 
+  ggplot(aes(x=year, y=mmt_co2_per_cap, group = geography, color = geography)) +
+  geom_line(size=1, alpha=0.9) + 
+  geom_point(size=1.2, alpha=0.9) + 
+  scale_color_manual(values = natparks.pals("KingsCanyon", 2), 
+                     name = "Geography", labels = c("National" = "United States", 
+                                  "Region" = region_label)) + 
+  theme(legend.position = "bottom") +
+   labs(x = "Year", 
+       y = "MMT C02 Per Capita", 
+       color = "")
+
+# save
+ggsave(
+  filename = "Figures/per_cap_proj.png", 
+  plot = p, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+rm(aeo_US, aeo_region, aeo_join, p)
+```
+
+
+### Figure 5. Change in total energy production and energy production as a proportion of total energy production by source
+
+This figure shows state-level data for annual generation from 1960 to 2024 (data can be accessed [here](https://www.eia.gov/state/seds/seds-data-complete.php?sid=US)).
+
+Below, I clean the data and create two faceted plots (one for total annual generation
+for all three geographies, and one for percent of annual generation). No need to 
+change anything here. 
+
+```{r}
+#| label: fig 5 data clean and plot
+#| message: false
+#| warning: false
+
+# pull data and filter for major energy production
+prod_data <- read_excel("data/SEDS/Prod_dataset.xlsx", 
+    sheet = "Data") |> 
+  filter(MSN %in% c("CLPRB", "PAPRB", "NGMPB", "NUPRB", "REPRB")) |> 
+  filter(!StateCode %in%c("X3", "X5")) |> 
+  pivot_longer(
+    cols            = matches("^[0-9]{4}$"),  
+    names_to        = "year",
+    names_transform = list(year = as.integer),
+    values_to       = "production_billion_btu"
+  )
+  
+
+# create list of geographies
+geo_defs <- list(
+  National = unique(prod_data$StateCode),  
+  State    = state_abb,
+  Region   = region
+)
+
+# summarize emissions by geography 
+energy_prod_by_geo <- map_dfr(
+  geo_defs,
+  ~ prod_data |>
+    filter(StateCode %in% .x) |>
+    group_by(year, MSN) |>
+    summarise(total_energy_bbtu = sum(production_billion_btu, na.rm = TRUE), .groups = "drop"),
+  .id = "geography"
+) 
+
+# re-label MSN Codes
+MSN_class <- tribble(
+  ~MSN,                    ~prod_label,
+  "CLPRB",                            "Coal",
+  "PAPRB",                     "Crude Oil",
+  "NGMPB",                       "Natural Gas",
+  "NUPRB",                     "Nuclear Energy",
+  "REPRB",                   "Renewables*"
+)
+
+# join it to my data 
+energy_prod_by_geo <- energy_prod_by_geo |>
+  left_join(MSN_class, by = "MSN")
+
+# calculate annual percent for each geography
+energy_pct <- energy_prod_by_geo |>
+  group_by(geography, year) |>
+  mutate(
+    total_all_sources = sum(total_energy_bbtu, na.rm = TRUE),
+    pct_of_total       = total_energy_bbtu / total_all_sources * 100
+  ) |>
+  ungroup()
+
+# Make faceted plot for total production
+total_plot <- ggplot(energy_pct, aes(x = year, y = total_energy_bbtu, color = prod_label)) +
+  geom_line(linewidth = 0.7) +
+  facet_wrap(
+        ~geography,
+         scales = "free_y",
+        labeller = as_labeller(c(
+            "National" = "United States",
+            "Region"   = region_label,
+            "State"    = state_label
+        ))) +
+  scale_color_manual(values = natparks.pals("KingsCanyon", 5), name = "Source") + 
+  labs(
+    title = "Total Energy Production by Source (1960–2024)",
+    x = NULL,
+    y = "Billion Btu",
+    color = "Source"
+  ) 
+
+## Make faceted plot for percent production
+percent_plot <- ggplot(energy_pct, aes(x = year, y = pct_of_total, color = prod_label)) +
+  geom_line(linewidth = 0.7) +
+  facet_wrap(
+    ~geography,
+    labeller = as_labeller(c(
+      "National" = "United States",
+      "Region"   = region_label,
+      "State"    = state_label
+    ))
+  ) +
+  scale_color_manual(values = natparks.pals("KingsCanyon", 5), name = "Source") +
+  labs(
+    title = "Share of Total Energy Production by Source (1960–2024)",
+    x = "Year",
+    y = "% of Total Production"
+  )
+
+# stitch it!
+combined_plot <- total_plot / percent_plot +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+combined_plot
+
+# save! 
+ggsave(
+  filename = "Figures/energy_prod_source.png", 
+  plot = combined_plot, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+rm(energy_pct, energy_prod_by_geo, geo_defs, MSN_class, prod_data, combined_plot, 
+   percent_plot, total_plot)
+```
+
+### Figure 6. Average annual household energy costs and Energy Burden
+This figure makes maps for regional, state, and county-level energy burden data from 
+the DOE LEAD Tool (data can be accessed [here](https://www.energy.gov/cmei/scep/slsc/lead-tool)).
+
+Below, I pull shapefiles, make classifications for the distribution of energy 
+burden and costs, and plot the maps. I also calculate optional annotations, 
+in case the creator is interested in calculating the median, minimum, and maximum 
+values. 
+
+Note that the maps in this plat may end up being non-ideal sizes. In this case, 
+another option may be to export each map as a .png and patch it together in 
+a program such as Canva or powerpoint. 
+```{r}
+#| label: fig 6 data clean and plot
+#| message: false
+#| warning: false
+
+## pull region, state (county), and census tract files
+region_sf <- tigris::counties(state = region, cb = TRUE, year = 2024) 
+state_sf <- region_sf |> filter(STUSPS %in%c(state_abb))
+tract_sf <- tigris::tracts(state = state_abb, county = county, cb = TRUE, year = 2024)
+
+state_outline <- region_sf |> group_by(STUSPS) |> summarize()
+
+## load energy burden datasets
+lead <- read_excel("data/LEAD/LEAD_Tool.xlsx") |> clean_names() |> 
+  mutate(county_geoid = str_sub(geography_id, 1, 5)) |>
+  mutate(energy_burden_percent_income = as.numeric(energy_burden_percent_income), 
+         avg_annual_energy_cost = as.numeric(avg_annual_energy_cost))
+
+region_eb <- lead |> filter(state %in%c(region_state_labels)) |> 
+  group_by(state, county, county_geoid) |> 
+  summarize(avg_eb = mean(energy_burden_percent_income, na.rm = TRUE), 
+            avg_cost = mean(avg_annual_energy_cost, na.rm = TRUE))
+
+state_eb  <- region_eb |> filter(state %in%c(state_label)) 
+
+tracts_eb <- lead |> filter(state %in%c(state_label) & county %in%c(county_label)) |>
+   rename(avg_eb = energy_burden_percent_income, 
+          avg_cost = avg_annual_energy_cost)
+  
+
+## Join to spatial datasets
+region_sf <- region_sf |> left_join(region_eb, by = c("GEOID" = "county_geoid")) |> 
+  select(GEOID, county, state, avg_eb, avg_cost)
+state_sf <- state_sf |> left_join(state_eb, by = c("GEOID" = "county_geoid")) |> 
+  select(GEOID, county, state, avg_eb, avg_cost)
+tract_sf <- tract_sf |> left_join(tracts_eb, by = c("GEOID" = "geography_id")) |> 
+  select(GEOID, avg_eb, avg_cost)
+
+## Regional County Map 
+region_class <- bi_class(region_sf, x = avg_cost, y = avg_eb, 
+        style = "quantile", dim = 2)
+
+region_map <- ggplot() +
+  geom_sf(data = region_class, mapping = aes(fill = bi_class), color = "white", size = 0.1, show.legend = FALSE) +
+  bi_scale_fill(pal = "Bluegill", dim = 2) +
+  geom_sf(data = state_outline, fill = NA, color = "black") + 
+  bi_theme()
+
+## State County Map 
+state_class <- bi_class(state_sf, x = avg_cost, y = avg_eb, 
+        style = "quantile", dim = 2)
+
+state_map <- ggplot() +
+  geom_sf(data = state_class, mapping = aes(fill = bi_class), color = "white", size = 0.1, show.legend = FALSE) +
+  bi_scale_fill(pal = "Bluegill", dim = 2) +
+  bi_theme()
+
+## County Census Tract Map 
+tract_class <- bi_class(tract_sf, x = avg_cost, y = avg_eb, 
+        style = "quantile", dim = 2)
+
+tract_map <- ggplot() +
+  geom_sf(data = county_class, mapping = aes(fill = bi_class), color = "white", size = 0.1, show.legend = FALSE) +
+  bi_scale_fill(pal = "Bluegill", dim = 2) +
+  bi_theme()
+
+## Legend 
+legend <- bi_legend(pal = "Bluegill",
+                    dim = 2,
+                    xlab = "Annual Energy Costs ($)",
+                    ylab = "Energy Burden (%)",
+                    size = 8)
+  
+## stitch! 
+region_map + state_map + tract_map + legend
+  
+## optional: calculate annotations 
+# Region: 
+region_class |> 
+  select(avg_eb, avg_cost) |>
+  st_drop_geometry() |> 
+  summarize(median_cost = median(avg_cost), min_cost = min(avg_cost), max_cost = max(avg_cost), 
+            median_eb = median(avg_eb), min_eb = min(avg_eb), max_eb = max(avg_eb))
+
+# State: 
+state_class |> 
+  select(avg_eb, avg_cost) |>
+  st_drop_geometry() |> 
+  summarize(median_cost = median(avg_cost), min_cost = min(avg_cost), max_cost = max(avg_cost), 
+            median_eb = median(avg_eb), min_eb = min(avg_eb), max_eb = max(avg_eb))
+
+# Tract: 
+tract_class |> 
+  select(avg_eb, avg_cost) |>
+  st_drop_geometry() |> 
+  summarize(median_cost = median(avg_cost, na.rm = TRUE), 
+            min_cost = min(avg_cost, na.rm = TRUE), 
+            max_cost = max(avg_cost, na.rm = TRUE), 
+            median_eb = median(avg_eb, na.rm = TRUE), 
+            min_eb = min(avg_eb, na.rm = TRUE), 
+            max_eb = max(avg_eb, na.rm = TRUE))
+
+rm(region_class, region_eb, region_sf, state_class, state_eb, state_sf, tract_class, 
+   tracts_eb, tract_sf, state_outline, lead)
+```
+
+### Air
+#### Figure 7. Air Quality
+This figure compares air quality across different densities of counties in your state of interest, and for comparably dense counties in your region, and across the nation. This data is from the 2024 EJScreen tool and an excel sheet that I compiled that includes representative (relatively well-known counties for different population density categories in each EPA region and across the U.S.). Although this data was removed from the EPA's website in February 2025, Harvard maintains a copy of the data [here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/RLR5AX). 
+
+You'll need to indicate your EPA region, but after that you should be free to 
+run this code chunk!
+```{r}
+#| label: fig 7 data clean and plot
+#| message: false
+#| warning: false
+
+# Indicate EPA region here: 
+# Example: target_epa_region <- 1
+target_epa_region   <- #[Indicate EPA region here]
+
+# read data into your environment
+city_size <- "data/PM2.5/reference_counties.xlsx" # path to companion workbook
+ejscreen_raw <- read_csv(ej_screen) |> clean_names()
+
+# create pop density classification function 
+density_breaks <- c(-Inf, 150, 500, 1500, Inf)
+density_labels <- c("Low", "Medium-Low", "Medium-High", "High")
+
+classify_density <- function(density) {
+  cut(density, breaks = density_breaks, labels = density_labels, right = FALSE)
+}
+
+# compare air quality for population density in your state of interest
+options(tigris_use_cache = TRUE)
+
+state_pop <- get_acs(
+  geography = "county",
+  state     = state_abb,
+  variables = "B01003_001",   # total population
+  year      = 2023,
+  survey    = "acs5") |>
+  clean_names() |>
+  transmute(
+    GEOID = geoid,
+    county_full = name,
+    population = estimate)
+
+state_land <- counties(state = state_abb, cb = TRUE, year = 2023) |>
+  st_drop_geometry() |>
+  clean_names() |>
+  transmute(GEOID = geoid, 
+            aland_sqmi = aland / 2589988.11)  # change sq meters -> sq miles
+
+state_counties <- state_pop |>
+  left_join(state_land, by = "GEOID") |>
+  mutate(density = population / aland_sqmi)
+
+state_counties <- state_counties |>
+  mutate(
+    density_quartile = ntile(density, 4),
+    density_class_instate = factor(
+      density_quartile,
+      levels = 1:4,
+      labels = c("Low Density", "Medium-Low Density", "Medium-High Density", "High Density")
+    )
+  )
+
+## Filter ejscreen data for state of interest and calculate county averages
+ejscreen_state <- ejscreen_raw |>
+  filter(st_abbrev == state_abb) |>
+  mutate(GEOID_county = str_sub(id, 1, 5)) |>
+  group_by(GEOID_county) |>
+  summarise(mean_pm25 = mean(pm25, na.rm = TRUE), .groups = "drop")
+
+panel_a_data <- panel_a_base |>
+  left_join(ejscreen_state, by = c("GEOID" = "GEOID_county")) |>
+  group_by(density_class_instate) |>
+  summarise(mean_pm25 = mean(mean_pm25, na.rm = TRUE), .groups = "drop") |>
+  filter(!is.na(density_class_instate)) |>
+  arrange(match(density_class_instate,
+                c("Low Density", "Medium-Low Density", "Medium-High Density", "High Density")))
+
+
+## calculate air quality for comparable regional counties 
+regional_lookup <- read_excel(city_size, sheet = "Regional_Reference_Counties") |>
+  clean_names() |>
+  filter(epa_region == target_epa_region, density_class == target_density_class) 
+
+data(fips_codes)
+regional_lookup <- regional_lookup |>
+  rename(county_name = county) |> 
+   mutate(county_clean = str_remove(county_name, " County$")) |>
+  left_join(
+    fips_codes |> clean_names() |>
+      mutate(county_clean = str_remove(county, " County$")),
+    by = c("state" = "state", "county_clean" = "county_clean")
+  ) |>
+  mutate(GEOID = paste0(state_code, county_code)) |> 
+  select(county_name:density_class, GEOID)
+
+pm25_by_county <- function(geoids) {
+  ejscreen_raw |>
+    mutate(GEOID_county = str_sub(id, 1, 5)) |>
+    filter(GEOID_county %in% geoids) |>
+    group_by(GEOID_county) |>
+    summarise(mean_pm25 = mean(pm25, na.rm = TRUE), .groups = "drop")
+}
+
+panel_b_pm25 <- pm25_by_county(regional_lookup$GEOID)
+
+panel_b_data <- regional_lookup |>
+  left_join(panel_b_pm25, by = c("GEOID" = "GEOID_county")) |>
+  transmute(label = paste0(county_name, ", ", state), mean_pm25)
+
+## Do the same for national counties that are the same size
+national_lookup <- read_excel(city_size, sheet = "National_Reference_Counties") |>
+  clean_names() |>
+  filter(density_class == target_density_class) |>
+  mutate(county_clean = str_remove(county, " County$")) |>
+  select(state:county_clean) |> 
+  left_join(
+    fips_codes |> clean_names() |>
+      mutate(county_clean = str_remove(county, " County$")),
+    by = c("state" = "state", "county_clean" = "county_clean")
+  ) |>
+  mutate(GEOID = paste0(state_code, county_code)) 
+
+panel_c_pm25 <- pm25_by_county(national_lookup$GEOID)
+
+panel_c_data <- national_lookup |>
+  left_join(panel_c_pm25, by = c("GEOID" = "GEOID_county")) |>
+  transmute(label = paste0(county, ", ", state), mean_pm25)
+
+## Make plots! 
+bar_plot <- function(df, x, y, fill_color) {
+  ggplot(df, aes(x = fct_inorder({{ x }}), y = {{ y }})) +
+    geom_col(fill = fill_color) +
+    geom_text(aes(label = round({{ y }}, 2)), vjust = -0.5, size = 6) +
+    labs(x = NULL, y = "Mean PM 2.5 Value") +
+    theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.12)))
+}
+
+p_a <- bar_plot(panel_a_data, density_class_instate, mean_pm25,
+                (natparks.pals("KingsCanyon")[4]))
+
+p_b <- bar_plot(panel_b_data, label, mean_pm25,
+                (natparks.pals("KingsCanyon")[5]))
+
+p_c <- bar_plot(panel_c_data, label, mean_pm25,
+                (natparks.pals("KingsCanyon")[6]))
+
+final_figure <- (p_a | p_b | p_c) 
+
+final_figure
+
+## Save
+ggsave(
+  filename = "Figures/pm25.png", 
+  plot = final_figure, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+rm(ejscreen_raw, ejscreen_state, fips_codes, national_lookup, panel_a_base, panel_a_data, panel_b_data, panel_b_pm25, panel_c_data, panel_c_pm25, regional_lookup, state_counties, state_land, state_pop, target_row, city_size, density_breaks, density_labels, ej_screen, epa_region, final_figure, p_a, p_b, p_c, target_density_class, target_epa_region, bar_plot, classify_density, pm25_by_county)
+```
+
+
+#### Table 2. Transportation Emissions
+This table uses data from the DARTE Annual On-road CO2 Emissions dataset. You can access the data [here](https://search.earthdata.nasa.gov/search/granules?p=C2389100132-ORNL_CLOUD&pg[0][v]=f&pg[0][gsk]=-start_date), although you may need to create an account.
+
+Unfortunately, this dataset hasn't been updated since 2017, and there don't seem to be any plans to update it in the future. We are actively looking for a more up-to-date dataset. 
+
+You shouldn't need to change any code in this chunk, just press the green arrow. 
+```{r}
+#| label: Table 2 data clean and summarize
+#| message: false
+#| warning: false
+
+# read in data 
+darte <- rast("data/DARTE/onroad_2017.tif")
+
+# pull geographic shapefiles
+us_sf <- tigris::states(cb = TRUE, year = 2024) |>
+  filter(!STUSPS %in% c("AK", "HI", "PR", "GU", "VI", "MP", "AS")) |>
+  summarise(NAME = "United States", geometry = st_union(geometry)) |>
+  st_transform(4326) |> vect()
+
+region_sf <- tigris::states(cb = TRUE, year = 2024) |>
+  filter(STUSPS %in% region) |>
+  summarise(NAME = "EPA Region", geometry = st_union(geometry)) |>
+  st_transform(4326) |> vect()
+
+state_sf <- tigris::states(cb = TRUE, year = 2024) |>
+  filter(STUSPS == state_abb) |> st_transform(4326) |> vect()
+
+county_sf <- tigris::counties(state = state_abb, cb = TRUE, year = 2024) |>
+  filter(NAME == county) |> st_transform(4326) |> vect()
+
+# create function for calculating emissions
+get_emissions <- function(raster, geom) {
+  vals <- terra::extract(raster, geom, fun = sum, na.rm = TRUE)
+  sum(vals[[2]], na.rm = TRUE)
+}
+
+# create function for calculating area
+get_area_mi2 <- function(geom) {
+  area_m2 <- expanse(geom, unit = "km") * 1e6  # km2 -> m2
+  area_m2 / 2589988.11  # m2 -> mi2
+}
+
+# pulling population data 
+get_population <- function(level, state_abb = NULL, county = NULL, states = NULL, year = 2023) {
+  if (level == "us") {
+    get_acs(geography = "us", variables = "B01003_001", year = year) |>
+      pull(estimate)
+  } else if (level == "region") {
+    get_acs(geography = "state", variables = "B01003_001", year = year) |>
+      filter(NAME %in% state.name[match(states, state.abb)] |
+               GEOID %in% tigris::fips_codes$state_code[tigris::fips_codes$state %in% states]) |>
+      summarise(total = sum(estimate)) |>
+      pull(total)
+  } else if (level == "state") {
+    get_acs(geography = "state", state = state_abb,
+            variables = "B01003_001", year = year) |>
+      pull(estimate)
+  } else if (level == "county") {
+    get_acs(geography = "county", state = state_abb, county = county,
+            variables = "B01003_001", year = year) |>
+      pull(estimate)
+  }
+}
+
+# summarize
+geographies <- list(
+  list(name = "United States",    geom = us_sf,     level = "us"),
+  list(name = region_label,       geom = region_sf, level = "region"),
+  list(name = state_abb,          geom = state_sf,  level = "state"),
+  list(name = county,             geom = county_sf, level = "county")
+)
+
+results <- lapply(geographies, function(g) {
+  emissions <- get_emissions(darte, g$geom)
+  area_mi2  <- get_area_mi2(g$geom)
+  pop <- switch(g$level,
+                us     = get_population("us"),
+                region = get_population("region", states = region),
+                state  = get_population("state", state_abb = state_abb),
+                county = get_population("county", state_abb = state_abb, county = county)
+  )
+  
+  tibble(
+    Geography = g$name,
+    total_emissions = emissions,
+    area_mi2 = area_mi2,
+    population = pop
+  )
+}) |> bind_rows()
+
+# calculate percent from national average
+us_percap <- results$total_emissions[results$Geography == "United States"] /
+  results$population[results$Geography == "United States"]
+
+results <- results |>
+  mutate(
+    avg_by_area = total_emissions / area_mi2,
+    avg_by_pop  = total_emissions / population,
+    pct_diff_national = if_else(
+      Geography == "United States",
+      NA_real_,
+      (avg_by_pop - us_percap) / us_percap
+    )
+  ) |>
+  select(Geography, total_emissions, avg_by_area, avg_by_pop, pct_diff_national)
+
+# format
+results <- results |>
+  gt() |>
+  cols_label(
+    total_emissions    = "Total Emissions per year, tons",
+    avg_by_area        = "Average by area, tons/mi2/year",
+    avg_by_pop         = "Average by population, tons/per/resident",
+    pct_diff_national  = "% difference from national average"
+  ) |>
+  fmt_number(columns = total_emissions, decimals = 0, use_seps = TRUE) |>
+  fmt_number(columns = avg_by_area, decimals = 0) |>
+  fmt_number(columns = avg_by_pop, decimals = 2) |>
+  fmt_percent(columns = pct_diff_national, decimals = 2) |>
+  sub_missing(columns = pct_diff_national, missing_text = "--") |>
+  tab_options(
+    column_labels.font.weight = "bold",
+    table.border.top.color = "black",
+    table.border.bottom.color = "black"
+  ) |>
+  cols_align(align = "left", columns = Geography) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(columns = Geography)
+  )
+
+# save!
+gtsave(
+results, 
+  filename = "Tables/transportation_emissions.docx"
+)
+
+rm(darte, geographies, region_sf, state_sf, us_sf, us_percap, get_population, results)
+```
+
+#### Table 3. EV Uptake 
+Data is pulled from the [US DOE](https://afdc.energy.gov/vehicle-registration?year=2023), emissions are from the USEPA GHG State Inventory that was FOIA'd from the EDF (link above), with population data queried from the Census Bureau. 
+
+You should be able to run the whole code chunk, and just indicate the file path for 
+where you'd like the final result to be saved (e.g., "Tables/ev_uptake/docx").
+```{r}
+#| label: Table 3 data clean and summarize
+#| message: false
+#| warning: false
+
+state_lookup <- tibble(
+  geo_ref = c(state.abb),
+  state   = c(state.name)
+)
+
+# read in registration data
+veh_reg_2023 <- read_excel("data/EV/2023_vehicle_registrations.xlsx") |> 
+  clean_names()
+
+# read in emissions data and calculate pollution from transportation (tons/capita)
+emissions <- read_excel("data/gross_emissions/DRAFT_AllStateGHGdata_90-23.xlsx", 
+    sheet = "Data by Economic Sectors") |>
+  filter(
+    sector    == "Energy",
+    subsector == "Fossil Fuel Combustion",
+    category  == "Transportation",
+    ghg       == "Carbon Dioxide"
+  ) |>
+  group_by(geo_ref) |>
+  summarise(
+    transp_co2_mmt_2023 = sum(Y2023, na.rm = TRUE),
+    .groups = "drop") |>
+  left_join(state_lookup, by = "geo_ref")
+
+population <- get_acs(geography = "state", variables = "B01003_001", year = 2024) |>
+      select(state = NAME, 
+             pop = estimate) 
+
+# join data 
+df <- emissions |> 
+  left_join(veh_reg_2023, by = c("state" = "state")) |> 
+  left_join(population, by = c("state" = "state")) |> 
+  clean_names() |> 
+  filter(!is.na(electric_ev)) |> 
+  rename(abb = geo_ref)
+
+# create a function that will formate the entire table and color the states based on 
+# region indicated
+build_ev_uptake_table <- function(df,
+                                  region,
+                                  highlight_color = "blue",
+                                  n_quartiles = 4,
+                                  fuel_cols = c("electric_ev",
+                                                "plug_in_hybrid_electric_phev",
+                                                "hybrid_electric_hev",
+                                                "biodiesel",
+                                                "ethanol_flex_e85",
+                                                "compressed_natural_gas_cng",
+                                                "propane",
+                                                "hydrogen",
+                                                "methanol",
+                                                "gasoline",
+                                                "diesel",
+                                                "unknown_fuel"),
+                                  ev_pev_cols = c("electric_ev",
+                                                  "plug_in_hybrid_electric_phev")) {
+
+  df2 <- df |>
+    left_join(state_lookup, by = "state") |>
+    mutate(
+      total_vehicles       = rowSums(across(all_of(fuel_cols)), na.rm = TRUE),
+      ev_pev_vehicles      = rowSums(across(all_of(ev_pev_cols)), na.rm = TRUE),
+      ev_uptake_pct        = ev_pev_vehicles / total_vehicles * 100,
+      pollution_per_capita = (transp_co2_mmt_2023* 1e6) / pop
+    ) |>
+    filter(!is.na(abb))
+  breaks <- quantile(df2$ev_uptake_pct,
+                     probs = seq(0, 1, length.out = n_quartiles + 1),
+                     na.rm = TRUE)
+  breaks[1] <- -Inf 
+  breaks[length(breaks)] <- Inf
+  df2 <- df2 |>
+    mutate(quartile = cut(ev_uptake_pct, breaks = breaks,
+                          include.lowest = TRUE, labels = FALSE))
+  quartile_names <- c("First Quartile", "Second Quartile",
+                      "Third Quartile", "Fourth Quartile")[seq_len(n_quartiles)]
+  summary_tbl <- df2 |>
+    arrange(quartile, ev_uptake_pct) |>
+    group_by(quartile) |>
+    summarise(
+      range_label = sprintf("(%.3f%%-%.3f%%)",
+                            min(ev_uptake_pct), max(ev_uptake_pct)),
+      states_html = paste0(
+        ifelse(abb %in% region,
+               sprintf('<span style="color:%s;font-weight:700;">%s</span>',
+                       highlight_color, abb),
+               abb),
+        collapse = ", "
+      ),
+      avg_pollution = round(mean(pollution_per_capita, na.rm = TRUE), 3),
+      .groups = "drop"
+    ) |>
+    arrange(quartile) |>
+    mutate(col_name = paste0("q", quartile))
+  header_row <- setNames(
+    as.list(paste0("<strong>", quartile_names, "</strong><br>", summary_tbl$range_label)),
+    summary_tbl$col_name
+  )
+  states_row <- setNames(as.list(summary_tbl$states_html), summary_tbl$col_name)
+  pollution_row <- setNames(as.list(as.character(summary_tbl$avg_pollution)), summary_tbl$col_name)
+
+  wide <- bind_rows(
+    c(list(Metric = "EV Uptake (% of All Vehicles EV or PEV)"), header_row),
+    c(list(Metric = "States, in Order of Uptake"), states_row),
+    c(list(Metric = "Average Air Pollution from Transportation (Tons/Capita)"), pollution_row)
+  )
+  gt_tbl <- wide |>
+    gt() |>
+    fmt_markdown(columns = everything()) |>
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_body(columns = Metric)
+    ) |>
+    tab_options(
+      column_labels.hidden = TRUE,
+      table.border.top.width = px(2),
+      table.border.bottom.width = px(2)
+    )
+  
+  list(data = wide, gt_table = gt_tbl, detail = df2)
+}
+
+# run it 
+result <- build_ev_uptake_table(df, region)
+# view results
+result$gt_table    
+
+# write results 
+gtsave(result$gt_table, "[INDICATE FILE PATH HERE]")   # export
+
+rm(df, emissions, ev_registration, population, result, state_lookup, veh_reg_2023, ev_pev_cols, fuel_cols)
+```
+
+
+### Water
+Violations data can be accessed [here](https://echo.epa.gov/tools/data-downloads#drinkingwater).
+
+#### Figure 8. Percentage of Community Water Systems (CWS) with one or more health-based violations between 2019-2026.
+This code chunk creates a figure for all health-based violations between 
+January 1, 2019 and December 31, 2025 violations data can be accessed [here](https://echo.epa.gov/tools/data-downloads#drinkingwater), stratified by 
+system size. You shouldn't need to change anything here, just press the green 
+triangle.
+```{r}
+#| label: Drinking water figure
+#| message: false
+#| warning: false
+
+
+# create function to read in data, filter for dates and HB violations
+build_violation_figure <- function(region, region_label,
+                                   state_abb, state_label,
+                                   violations_path = "data/SDWA/SDWA_VIOLATIONS_ENFORCEMENT.csv",
+                                   pws_path = "data/SDWA/SDWA_PUB_WATER_SYSTEMS.csv") {
+  
+  violations <- read_csv(violations_path) |>
+    select(PWSID, VIOLATION_ID, IS_HEALTH_BASED_IND, VIOL_FIRST_REPORTED_DATE) |>
+    unique() |>
+    mutate(VIOL_FIRST_REPORTED_DATE = mdy(VIOL_FIRST_REPORTED_DATE)) |>
+    filter(between(VIOL_FIRST_REPORTED_DATE, as.Date("2019-01-01"), as.Date("2025-12-31"))) |>
+    mutate(IS_HEALTH_BASED_IND = as.factor(IS_HEALTH_BASED_IND)) |>
+    filter(IS_HEALTH_BASED_IND == "Y") |>
+    group_by(PWSID) |>
+    summarise(total_hb_viol = n(), hb_presence = if_else(total_hb_viol > 0, 1, 0), .groups = "drop")
+  
+  cws <- read_csv(pws_path) |>
+    filter(PWS_TYPE_CODE == "CWS", PWS_ACTIVITY_CODE == "A") |>
+    select(PWSID, PWS_NAME, PRIMACY_AGENCY_CODE, PWS_ACTIVITY_CODE, POP_CAT_5_CODE) |>
+    unique() |>
+    filter(!PRIMACY_AGENCY_CODE %in% c("AP", "AS", "BC", "PQ", "QC", "ON", "GU", "VI", "MP",
+                                       "01","02","03","04","05","06","07","08","09","10")) |>
+    filter(!is.na(PRIMACY_AGENCY_CODE))
+  
+  US_CWS <- cws |>
+    left_join(violations, by = "PWSID") |>
+    mutate(hb_presence = ifelse(is.na(hb_presence), 0, hb_presence))
+  
+  # helper: overall violation-rate summary for any subset of states
+  summarise_systems <- function(data, label) {
+    data |>
+      summarise(total_syst_viol = sum(hb_presence),
+                total_systems   = n(),
+                perc_sys_w_viol = total_syst_viol / total_systems) |>
+      mutate(unit = label)
+  }
+  
+  # helper: violation breakdown by population-served category
+  summarise_by_pop_cat <- function(data, denom, label) {
+    data |>
+      group_by(POP_CAT_5_CODE) |>
+      summarise(no_sys_viol = sum(hb_presence), total_sys = n(),
+                perc_viol = no_sys_viol / denom, .groups = "drop") |>
+      mutate(unit = label)
+  }
+  
+  US_total     <- summarise_systems(US_CWS, "United States")
+  region_total <- summarise_systems(filter(US_CWS, PRIMACY_AGENCY_CODE %in% region), region_label)
+  state_total  <- summarise_systems(filter(US_CWS, PRIMACY_AGENCY_CODE %in% state_abb), state_label)
+  
+  total_sys_perc <- bind_rows(US_total, region_total, state_total) |>
+    mutate(unit = factor(unit, levels = c("United States", region_label, state_label)))
+  
+  US_viol     <- summarise_by_pop_cat(US_CWS, US_total$total_syst_viol, "United States")
+  region_viol <- summarise_by_pop_cat(filter(US_CWS, PRIMACY_AGENCY_CODE %in% region),
+                                      region_total$total_syst_viol, region_label)
+  state_viol  <- summarise_by_pop_cat(filter(US_CWS, PRIMACY_AGENCY_CODE %in% state_abb),
+                                      state_total$total_syst_viol, state_label)
+  
+  all_viol <- bind_rows(US_viol, region_viol, state_viol) |>
+    mutate(unit = factor(unit, levels = c("United States", region_label, state_label))) |>
+    left_join(total_sys_perc, by = "unit") |>
+    mutate(pop_cat = factor(POP_CAT_5_CODE, levels = c("1","2","3","4","5"),
+                            labels = c("<=500","501-3,300","3,301-10,000",
+                                       "10,001-100,000",">100,000")),
+           total_perc = round((perc_viol * perc_sys_w_viol) * 100, 1),
+           perc_systems_w_viol = round(perc_sys_w_viol * 100, 1))
+  
+  p <- all_viol |>
+    ggplot(aes(fill = pop_cat, y = total_perc / 100, x = unit)) +
+    geom_bar(position = "stack", stat = "identity") +
+    scale_fill_manual(values = natparks.pals("KingsCanyon", 5), name = "Population Served") +
+    scale_y_continuous(labels = percent) +
+    labs(x = "", y = "Percent of Systems with Health-Based Violation(s)") +
+    theme(legend.position = "bottom")
+  
+  list(plot = p, data = all_viol)
+}
+
+# run function 
+viol <- build_violation_figure(region, region_label, state_abb, state_label)
+
+  
+# plot!
+p <- viol$plot
+
+## save 
+ggsave(
+  filename = "Figures/hb_drinking_water.png", 
+  plot = p, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+```
+
+
+#### Figure 9. Percentile-ranked Properties at Risk of Flooding
+This graphic shares percentile-ranked risks of flooding, with low-income househods
+overlaid at the county, state, and regional levels. Data is from the CEJST (linked above), 
+and similar to our energy burden maps, may require you to export the PNG files 
+and manually put them together in a program like powerpoint or Canva. 
+
+No need to change anything here, just press the green arrow.
+```{r}
+#| label: Flood Risk figure
+#| message: false
+#| warning: false
+
+# read data 
+cejst <- read_csv("data/CEJST/2.0-communities.csv") |> 
+  filter(`Total population` >0)
+
+# bit of data cleaning to select columns, filter for region of interest, and 
+# create layers for floods and low-income CTs
+region_ct <-  map_df(region, function(state) {
+  tigris::tracts(state = state, year = 2010)
+})
+
+region_states <- tigris::states() |> 
+              filter(STUSPS %in% region)
+
+region_shp <- cejst |> select(`Census tract 2010 ID`:`State/Territory`, `Is low income?`, `Share of properties at risk of flood in 30 years (percentile)`) |> 
+      rename(geoid = `Census tract 2010 ID`, 
+             county = `County Name`, 
+             state = `State/Territory`, 
+             low_income = `Is low income?`, 
+             flood_risk_perc = 
+            "Share of properties at risk of flood in 30 years (percentile)") |> 
+  filter(state %in% region_state_labels) |> 
+    left_join(region_ct, by = c("geoid" = "GEOID10")) |> st_as_sf()
+
+low_income <- region_shp |> 
+              filter(low_income == TRUE) |> 
+              filter(flood_risk_perc >= 90)
+
+state_shp <- region_shp |> filter(state %in% state_label)
+state_li <- low_income |> filter(state %in% state_label)
+
+county_shp <- state_shp |> filter(county %in% county_label)
+county_li <- low_income |> filter(county %in% county_label)
+
+# make maps 
+kc_continuous <- colorRampPalette(natparks.pals("KingsCanyon"))(100)
+
+region_map <- ggplot() +
+  geom_sf(data = region_shp, mapping = aes(fill = flood_risk_perc), color = "white", 
+          linewidth = 0.001) +
+  scale_fill_gradientn(
+    colors = kc_continuous,
+    na.value = "grey80",
+    limits = c(0, 100),
+    oob = squish,
+    name = "Flood Risk") + 
+  geom_sf(data = region_states, fill = NA, color = "black", linewidth = 0.5) + 
+  geom_sf(data = low_income, fill = NA, color = "#D55E00", linewidth = 0.4) +
+  bi_theme()
+
+state_map <- ggplot() +
+  geom_sf(data = state_shp, mapping = aes(fill = flood_risk_perc), color = "white", 
+          linewidth = 0.001) +
+  scale_fill_gradientn(
+    colors = kc_continuous,
+    na.value = "grey80",
+    limits = c(0, 100),
+    oob = squish,
+    name = "Flood Risk") + 
+  geom_sf(data = state_li, fill = NA, color = "#D55E00", linewidth = 0.4) +
+  bi_theme()
+
+## Optional: add water features to county map if there are important rivers/bodies 
+## of water for readers to orient themselves. 
+
+#water <- tigris::area_water(state = state_abb, 
+ #                  county = county) |> filter(!is.na(FULLNAME))
+
+county_map <- ggplot() +
+  geom_sf(data = county_shp, mapping = aes(fill = flood_risk_perc), color = "white", 
+          linewidth = 0.001) +
+   scale_fill_gradientn(
+    colors = kc_continuous,
+    na.value = "grey80",
+    limits = c(0, 100),
+    oob = squish,
+    name = "Flood Risk") + 
+  # geom_sf(data = water, fill = "navy") +
+  geom_sf(data = county_li, fill = NA, color = "#D55E00", linewidth = 0.75) +
+  bi_theme()
+
+legend <- get_legend(county_map)
+as_ggplot(legend)
+
+## save maps!
+ggsave(
+  filename = "Figures/flood_region.png", 
+  plot = region_map, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+ggsave(
+  filename = "Figures/flood_state.png", 
+  plot = state_map, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+ggsave(
+  filename = "Figures/flood_county.png", 
+  plot = county_map, 
+  width = 6, 
+  height = 4, 
+  units = "in", 
+  dpi = 300
+)
+
+## Optional: Calculate Annotations 
+region_shp |> 
+  st_drop_geometry() |> 
+  summarise(
+    n_tracts                   = n(),
+    pct_flood_risk_90          = mean(flood_risk_perc >= 90, na.rm = TRUE) * 100,
+    pct_flood_risk_90_low_inc  = mean(flood_risk_perc >= 90 & low_income, na.rm = TRUE) * 100
+  )
+
+state_shp |> 
+  st_drop_geometry() |> 
+  summarise(
+    n_tracts                   = n(),
+    pct_flood_risk_90          = mean(flood_risk_perc >= 90, na.rm = TRUE) * 100,
+    pct_flood_risk_90_low_inc  = mean(flood_risk_perc >= 90 & low_income, na.rm = TRUE) * 100
+  )
+
+county_shp |> 
+  st_drop_geometry() |> 
+  summarise(
+    n_tracts                   = n(),
+    pct_flood_risk_90          = mean(flood_risk_perc >= 90, na.rm = TRUE) * 100,
+    pct_flood_risk_90_low_inc  = mean(flood_risk_perc >= 90 & low_income, na.rm = TRUE) * 100
+  )
+
+rm(cejst, county_li, county_shp, legend, low_income, region_ct, region_states, state_li, 
+   state_shp, county_map,kc_continuous, region_map, state_map)
+```
+
+
+#### Table 3. Impaired Waterways
+This data was accessed [here](https://www.epa.gov/waterdata/get-data-access-public-attains-data#AttainsGeo). Note that much of EPA data runs on ArcPro now, so I added this using the server connection in ArcPro, then downloaded the data as an excel to analyze in R.
+
+Note that I intend to continue working on this table. 
+```{r}
+#| label: Impaired Waterways
+#| message: false
+#| warning: false
+
+# set path to read in data 
+gdb_path <- "~/Desktop/2026_2027_SOE/data/ATTAINS/ATTAINS_Assessment_20250117.gdb"
+
+# select layers of interest
+assessment_layers <- c(
+  "attains_au_areas",
+  "attains_au_lines",
+  "attains_au_points"
+)
+
+# create function to read all three layers, track location of data, and filter for 
+# anything published after 2022
+read_and_filter <- function(layer_name) {
+  st_read(dsn = gdb_path, layer = layer_name, quiet = TRUE) %>%
+    mutate(
+      reportingcycle = as.numeric(reportingcycle),
+      geometry_type   = layer_name  # track which layer each row came from
+    ) %>%
+    filter(reportingcycle >= 2022)
+}
+
+# read in filtered data (this might take a second)
+ATTAINS_by_geom <- map(assessment_layers, read_and_filter) %>%
+  set_names(assessment_layers)
+
+# join into one df! 
+ATTAINS_combined <- ATTAINS_by_geom %>%
+  map(st_drop_geometry) %>%
+  bind_rows() 
+
+
+```
