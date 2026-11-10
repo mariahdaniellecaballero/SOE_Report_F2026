@@ -1,0 +1,109 @@
+---
+title: "Dr_Cab_BioMap"
+format: html
+---
+
+## Set-up
+```{r}
+library(tidyverse)
+library(sf)
+library(arcgis)
+library(mapview)
+library(janitor)
+```
+
+## Read in Priority Natural Communities Core
+Data accessed from [BioMap Feature Layer](https://wellesley.maps.arcgis.com/home/item.html?id=d5f44922e5e446b3a3bd0a32dd04a498#overview)
+```{r}
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/BioMap_CoreHabitatComponents/FeatureServer/1"
+flayer <- arc_open(furl)
+pncc <- arc_select(flayer) |> clean_names() |> mutate(layer = "pncc")
+
+
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/BioMap_CoreHabitatComponents/FeatureServer/2"
+flayer <- arc_open(furl)
+aqua_core <- arc_select(flayer) |> clean_names() |> mutate(layer = "aqua_core")
+
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/BioMap_CoreHabitatComponents/FeatureServer/3"
+flayer <- arc_open(furl)
+wetland <- arc_select(flayer) |> clean_names() |> mutate(layer = "wetland")
+
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/BioMap_CoreHabitatComponents/FeatureServer/4"
+flayer <- arc_open(furl)
+rare_species <- arc_select(flayer) |> clean_names() |> mutate(layer = "rare_species")
+
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/BioMap_CoreHabitatComponents/FeatureServer/5"
+flayer <- arc_open(furl)
+forest <- arc_select(flayer) |> clean_names() |> mutate(layer = "forest")
+
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/BioMap_CoreHabitatComponents/FeatureServer/6"
+flayer <- arc_open(furl)
+vernal_pool <- arc_select(flayer) |> clean_names() |> mutate(layer = "vernal_pool")
+```
+
+Join rows and fix geometries. Note that there are some pretty cool columns, 
+specifically in the pncc, rare_species, and aqua_core datasets that I needed to 
+drop to maintain consistent dat structure, but may be work looking into! You can 
+read more about metadata [here](https://www.mass.gov/info-details/massgis-data-biomap-the-future-of-conservation)
+```{r}
+
+biomap_core_hab <- pncc |> select(layer) |> 
+  bind_rows(aqua_core)|> select(layer) |> 
+   bind_rows(wetland)|> select(layer) |> 
+   bind_rows(rare_species)|> select(layer) |> 
+   bind_rows(forest)|> select(layer) |>
+   bind_rows(vernal_pool)|> select(layer) |> 
+  mutate(id = 1:18761) |> 
+  st_make_valid()
+
+```
+
+## Read in DCR Ecoregions
+Data accessed from [MA DCR Feature Layer](https://wellesley.maps.arcgis.com/home/item.html?id=bce82aad47394bf7a3add219f3c92297#overview)
+```{r}
+furl <- "https://wellesley.maps.arcgis.com/home/item.html?id=bce82aad47394bf7a3add219f3c92297"
+flayer <- arc_open(furl)
+
+layer <- get_layer(flayer, 0)
+ecoregions <- arc_select(layer)
+
+# set CRS to match biomap data 
+ecoregions <- ecoregions |> st_transform(st_crs(biomap_core_hab)) |> st_make_valid() |> 
+  clean_names() |> select(econame)
+```
+
+# Calculate percent of Biomap Core Habitat per Ecoregion
+```{r}
+# total area
+total_bio_area <- biomap_core_hab |>
+  mutate(area = st_area(geometry)) |>
+  pull(area) |>
+  sum()
+
+# prop area by ecoregion
+bio_by_eco <- st_intersection(biomap_core_hab, ecoregions) |>
+  mutate(area = st_area(geometry)) |>
+  st_drop_geometry() |>
+  group_by(econame) |>
+  summarise(area = sum(area)) |>
+  mutate(perc_of_bio_area = (area / total_bio_area)*100)
+
+## data distribution 
+summary(bio_by_eco)
+## cut data 
+bio_by_eco <- bio_by_eco  |>
+  mutate(perc_bio_cat = cut(perc_of_bio_area,
+    breaks = c(1, 3.8, 6.6, 9.4, 23),
+    labels = c("1-3.8%", "3.8-6.6%", "6.6-9.5%", "9.5-23%")))
+
+bio_by_eco <- ecoregions |> left_join(bio_by_eco)
+
+## map
+bio_by_eco |>
+  ggplot() + 
+  geom_sf(aes(fill = perc_bio_cat)) +
+  scale_fill_manual(values = c(c("#DD5A54", "#EDBFB2", "#EC940C", "#608ED8")))
+  
+```
+Note-- can likely afford to add correct font, remove background, and add legend 
+and north arrow. 
