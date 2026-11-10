@@ -145,10 +145,7 @@ county_label <- "[ADD COUNTY LABEL HERE]"
 
 #### Table 1. Change in Land Use Land Cover
 
-Let's start by assessing change in land use land cover in the your geographies of interest. For the year 2026, we'll assess 2005 and 2025. National Land Cover Data can be accessed [here](https://www.mrlc.gov/data). In this chunk, I'm going to create shapefiles of 
-all counties, states, and regions of interest, then use a really long function 
-to reclass and count the land cover types in all four geographies, then calculate
-the percent change between 2005 and 2025. 
+Let's start by assessing change in land use land cover in the your geographies of interest. For the year 2026, we'll assess 2005 and 2025. National Land Cover Data can be accessed [here](https://www.mrlc.gov/data). In this chunk, I'm going to create shapefiles of all counties, states, and regions of interest, then use a really long function to reclass and count the land cover types in all four geographies, then calculate the percent change between 2005 and 2025.
 
 There is no need to make any changes here, just press the green triangle.
 
@@ -326,13 +323,9 @@ nlcd_zonal_stats <- function(
 
 ```
 
-Now, we'll create a list of our geographies of interest, and run the actual analysis.
-Please note that this is a pretty computationally heavy analysis, so it's likely 
-going to take over ten minutes to run. 
+Now, we'll create a list of our geographies of interest, and run the actual analysis. Please note that this is a pretty computationally heavy analysis, so it's likely going to take over ten minutes to run.
 
-Note that I don't calculate the percent change for the whole US because it is way
-too much data, you'll crash your computer. No need to do anything here, just press 
-green triangle and be patient. 
+Note that I don't calculate the percent change for the whole US because it is way too much data, you'll crash your computer. No need to do anything here, just press green triangle and be patient.
 
 ```{r}
 #| label: pull shapefiles and create percent change function
@@ -354,7 +347,8 @@ results <- nlcd_zonal_stats(
 rm(nlcd_2005, nlcd_2025)
 ```
 
-Excellent, we have our first table! Let's do a bit of formatting now. 
+Excellent, we have our first table! Let's do a bit of formatting now.
+
 ```{r}
 #| label: format final table and save
 #| message: false
@@ -424,15 +418,10 @@ rm(county_sf, geographies, nlcd_2005, nlcd_2025, region_sf, state_sf, nlcd_zonal
 ## Climate
 
 #### Figure 1. Percent change in gross emissions, 1990 to 2023.
-This chart normally requires data downloaded from the USEPA Greenhouse Gas 
-Inventory ([link here](https://cfpub.epa.gov/ghgdata/inventoryexplorer/#iallsectors/allsectors/allgas/gas/all)). However, this time we'll be using data FOIA'd from the 
-Environmental Defense Fund (link here), because the USEPA was slow-walking the
-2025 data release ([FOIA request here](https://www.edf.org/freedom-information-act-documents-epas-greenhouse-gas-inventory)).
 
-I'll do a bit of data cleaning and reshaping before I can plot it, but do feel free 
-to change the legend names (a few lines belowe where it says "plot!") to something 
-a bit more descript (e.g.,"State" can be labeled as "Massachusetts", and 
-"Region" can be labeled as "USEPA Region 1"). 
+This chart normally requires data downloaded from the USEPA Greenhouse Gas Inventory ([link here](https://cfpub.epa.gov/ghgdata/inventoryexplorer/#iallsectors/allsectors/allgas/gas/all)). However, this time we'll be using data FOIA'd from the Environmental Defense Fund (link here), because the USEPA was slow-walking the 2025 data release ([FOIA request here](https://www.edf.org/freedom-information-act-documents-epas-greenhouse-gas-inventory)).
+
+I'll do a bit of data cleaning and reshaping before I can plot it, but do feel free to change the legend names (a few lines belowe where it says "plot!") to something a bit more descript (e.g.,"State" can be labeled as "Massachusetts", and "Region" can be labeled as "USEPA Region 1").
 
 ```{r}
 #| label: fig 1 data clean and plot
@@ -508,10 +497,10 @@ ggsave(
 )
 ```
 
-
 #### Figure 2. Emissions by Sector, 1990 to present.
-We'll use the same dataset here, just summarized differently, so that we can plot 
-the change in sector over time. 
+
+We'll use the same dataset here, just summarized differently, so that we can plot the change in sector over time.
+
 ```{r}
 #| label: fig 2 data clean and plot
 #| message: false
@@ -571,19 +560,12 @@ rm(emissions, geo_defs, gross_by_geo, gross_by_geo_sector, gross_with_pct_change
 ## Energy
 
 ### Figure 3. Percent of electricity production from non-carbon sources
-This code uses data from the EIA's Historical State Dataset. Specifically, 
-we use the *Net Generation by State by Type of Producer by Energy Source* table
-which can be accessed [here](https://www.eia.gov/electricity/data/state/). 
 
-I'll do a bit of data cleaning and reshaping before I can plot it, but do feel free 
-to change the legend names (a few lines belowe where it says "plot!") to something 
-a bit more descriptive (e.g.,"State" can be labeled as "Massachusetts", and 
-"Region" can be labeled as "USEPA Region 1"). 
+This code uses data from the EIA's Historical State Dataset. Specifically, we use the *Net Generation by State by Type of Producer by Energy Source* table which can be accessed [here](https://www.eia.gov/electricity/data/state/).
 
-*Note that I assign "carbon" generating sources as coal, natural gas, petroleum, 
-other gases, other biomass, wood and wood-derived fuels, and other because they 
-are combustion sources (some renewable energy sources include wood and biomass as 
-renewable, but I believe combustion is combustion).
+I'll do a bit of data cleaning and reshaping before I can plot it, but do feel free to change the legend names (a few lines belowe where it says "plot!") to something a bit more descriptive (e.g.,"State" can be labeled as "Massachusetts", and "Region" can be labeled as "USEPA Region 1").
+
+\*Note that I assign "carbon" generating sources as coal, natural gas, petroleum, other gases, other biomass, wood and wood-derived fuels, and other because they are combustion sources (some renewable energy sources include wood and biomass as renewable, but I believe combustion is combustion).
 
 ```{r}
 #| label: fig 3 data clean and plot
@@ -673,15 +655,11 @@ ggsave(
 rm(energy_by_geo, geo_defs, long_df, non_carbon_pct, source_classification, state_gen, p)
 ```
 
-
 ### Figure 4. Projected per capita emissions from present to 2050
 
 This data can be accessed from table 18 in the USEIA Energy Outlook ([link here](https://www.eia.gov/outlooks/aeo/data/browser/#/?id=17-AEO2026&region=1-9&cases=cb2026&start=2025&end=2050&f=A&linechart=cb2026-d021826b.3-17-AEO2026.1-9&map=cb2026-d021826b.3-17-AEO2026.1-9&ctype=linechart&sid=~&sourcekey=0)).
 
-Below, I add the data in for the US, and read in regional data (*you'll need to
-look up your region of interest and add the file path in the data folder to 
-read in that data*. You can view the EIA maps, which are different from EPA regions 
-[here](https://www.eia.gov/outlooks/aeo/data/browser/#/?id=17-AEO2026&region=1-9&cases=cb2026&start=2025&end=2050&f=A&linechart=cb2026-d021826b.3-17-AEO2026.1-9&map=cb2026-d021826b.3-17-AEO2026.1-9&ctype=map&sid=~&sourcekey=0)). 
+Below, I add the data in for the US, and read in regional data (*you'll need to look up your region of interest and add the file path in the data folder to read in that data*. You can view the EIA maps, which are different from EPA regions [here](https://www.eia.gov/outlooks/aeo/data/browser/#/?id=17-AEO2026&region=1-9&cases=cb2026&start=2025&end=2050&f=A&linechart=cb2026-d021826b.3-17-AEO2026.1-9&map=cb2026-d021826b.3-17-AEO2026.1-9&ctype=map&sid=~&sourcekey=0)).
 
 ```{r}
 #| label: fig 4 data clean and plot
@@ -747,14 +725,11 @@ ggsave(
 rm(aeo_US, aeo_region, aeo_join, p)
 ```
 
-
 ### Figure 5. Change in total energy production and energy production as a proportion of total energy production by source
 
 This figure shows state-level data for annual generation from 1960 to 2024 (data can be accessed [here](https://www.eia.gov/state/seds/seds-data-complete.php?sid=US)).
 
-Below, I clean the data and create two faceted plots (one for total annual generation
-for all three geographies, and one for percent of annual generation). No need to 
-change anything here. 
+Below, I clean the data and create two faceted plots (one for total annual generation for all three geographies, and one for percent of annual generation). No need to change anything here.
 
 ```{r}
 #| label: fig 5 data clean and plot
@@ -873,17 +848,13 @@ rm(energy_pct, energy_prod_by_geo, geo_defs, MSN_class, prod_data, combined_plot
 ```
 
 ### Figure 6. Average annual household energy costs and Energy Burden
-This figure makes maps for regional, state, and county-level energy burden data from 
-the DOE LEAD Tool (data can be accessed [here](https://www.energy.gov/cmei/scep/slsc/lead-tool)).
 
-Below, I pull shapefiles, make classifications for the distribution of energy 
-burden and costs, and plot the maps. I also calculate optional annotations, 
-in case the creator is interested in calculating the median, minimum, and maximum 
-values. 
+This figure makes maps for regional, state, and county-level energy burden data from the DOE LEAD Tool (data can be accessed [here](https://www.energy.gov/cmei/scep/slsc/lead-tool)).
 
-Note that the maps in this plat may end up being non-ideal sizes. In this case, 
-another option may be to export each map as a .png and patch it together in 
-a program such as Canva or powerpoint. 
+Below, I pull shapefiles, make classifications for the distribution of energy burden and costs, and plot the maps. I also calculate optional annotations, in case the creator is interested in calculating the median, minimum, and maximum values.
+
+Note that the maps in this plat may end up being non-ideal sizes. In this case, another option may be to export each map as a .png and patch it together in a program such as Canva or powerpoint.
+
 ```{r}
 #| label: fig 6 data clean and plot
 #| message: false
@@ -991,11 +962,13 @@ rm(region_class, region_eb, region_sf, state_class, state_eb, state_sf, tract_cl
 ```
 
 ### Air
-#### Figure 7. Air Quality
-This figure compares air quality across different densities of counties in your state of interest, and for comparably dense counties in your region, and across the nation. This data is from the 2024 EJScreen tool and an excel sheet that I compiled that includes representative (relatively well-known counties for different population density categories in each EPA region and across the U.S.). Although this data was removed from the EPA's website in February 2025, Harvard maintains a copy of the data [here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/RLR5AX). 
 
-You'll need to indicate your EPA region, but after that you should be free to 
-run this code chunk!
+#### Figure 7. Air Quality
+
+This figure compares air quality across different densities of counties in your state of interest, and for comparably dense counties in your region, and across the nation. This data is from the 2024 EJScreen tool and an excel sheet that I compiled that includes representative (relatively well-known counties for different population density categories in each EPA region and across the U.S.). Although this data was removed from the EPA's website in February 2025, Harvard maintains a copy of the data [here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/RLR5AX).
+
+You'll need to indicate your EPA region, but after that you should be free to run this code chunk!
+
 ```{r}
 #| label: fig 7 data clean and plot
 #| message: false
@@ -1154,13 +1127,14 @@ ggsave(
 rm(ejscreen_raw, ejscreen_state, fips_codes, national_lookup, panel_a_base, panel_a_data, panel_b_data, panel_b_pm25, panel_c_data, panel_c_pm25, regional_lookup, state_counties, state_land, state_pop, target_row, city_size, density_breaks, density_labels, ej_screen, epa_region, final_figure, p_a, p_b, p_c, target_density_class, target_epa_region, bar_plot, classify_density, pm25_by_county)
 ```
 
-
 #### Table 2. Transportation Emissions
-This table uses data from the DARTE Annual On-road CO2 Emissions dataset. You can access the data [here](https://search.earthdata.nasa.gov/search/granules?p=C2389100132-ORNL_CLOUD&pg[0][v]=f&pg[0][gsk]=-start_date), although you may need to create an account.
 
-Unfortunately, this dataset hasn't been updated since 2017, and there don't seem to be any plans to update it in the future. We are actively looking for a more up-to-date dataset. 
+This table uses data from the DARTE Annual On-road CO2 Emissions dataset. You can access the data [here](https://search.earthdata.nasa.gov/search/granules?p=C2389100132-ORNL_CLOUD&pg%5B0%5D%5Bv%5D=f&pg%5B0%5D%5Bgsk%5D=-start_date), although you may need to create an account.
 
-You shouldn't need to change any code in this chunk, just press the green arrow. 
+Unfortunately, this dataset hasn't been updated since 2017, and there don't seem to be any plans to update it in the future. We are actively looking for a more up-to-date dataset.
+
+You shouldn't need to change any code in this chunk, just press the green arrow.
+
 ```{r}
 #| label: Table 2 data clean and summarize
 #| message: false
@@ -1296,11 +1270,12 @@ results,
 rm(darte, geographies, region_sf, state_sf, us_sf, us_percap, get_population, results)
 ```
 
-#### Table 3. EV Uptake 
-Data is pulled from the [US DOE](https://afdc.energy.gov/vehicle-registration?year=2023), emissions are from the USEPA GHG State Inventory that was FOIA'd from the EDF (link above), with population data queried from the Census Bureau. 
+#### Table 3. EV Uptake
 
-You should be able to run the whole code chunk, and just indicate the file path for 
-where you'd like the final result to be saved (e.g., "Tables/ev_uptake/docx").
+Data is pulled from the [US DOE](https://afdc.energy.gov/vehicle-registration?year=2023), emissions are from the USEPA GHG State Inventory that was FOIA'd from the EDF (link above), with population data queried from the Census Bureau.
+
+You should be able to run the whole code chunk, and just indicate the file path for where you'd like the final result to be saved (e.g., "Tables/ev_uptake/docx").
+
 ```{r}
 #| label: Table 3 data clean and summarize
 #| message: false
@@ -1439,15 +1414,14 @@ gtsave(result$gt_table, "[INDICATE FILE PATH HERE]")   # export
 rm(df, emissions, ev_registration, population, result, state_lookup, veh_reg_2023, ev_pev_cols, fuel_cols)
 ```
 
-
 ### Water
+
 Violations data can be accessed [here](https://echo.epa.gov/tools/data-downloads#drinkingwater).
 
 #### Figure 8. Percentage of Community Water Systems (CWS) with one or more health-based violations between 2019-2026.
-This code chunk creates a figure for all health-based violations between 
-January 1, 2019 and December 31, 2025 violations data can be accessed [here](https://echo.epa.gov/tools/data-downloads#drinkingwater), stratified by 
-system size. You shouldn't need to change anything here, just press the green 
-triangle.
+
+This code chunk creates a figure for all health-based violations between January 1, 2019 and December 31, 2025 violations data can be accessed [here](https://echo.epa.gov/tools/data-downloads#drinkingwater), stratified by system size. You shouldn't need to change anything here, just press the green triangle.
+
 ```{r}
 #| label: Drinking water figure
 #| message: false
@@ -1552,14 +1526,12 @@ ggsave(
 
 ```
 
-
 #### Figure 9. Percentile-ranked Properties at Risk of Flooding
-This graphic shares percentile-ranked risks of flooding, with low-income househods
-overlaid at the county, state, and regional levels. Data is from the CEJST (linked above), 
-and similar to our energy burden maps, may require you to export the PNG files 
-and manually put them together in a program like powerpoint or Canva. 
+
+This graphic shares percentile-ranked risks of flooding, with low-income househods overlaid at the county, state, and regional levels. Data is from the CEJST (linked above), and similar to our energy burden maps, may require you to export the PNG files and manually put them together in a program like powerpoint or Canva.
 
 No need to change anything here, just press the green arrow.
+
 ```{r}
 #| label: Flood Risk figure
 #| message: false
@@ -1705,11 +1677,12 @@ rm(cejst, county_li, county_shp, legend, low_income, region_ct, region_states, s
    state_shp, county_map,kc_continuous, region_map, state_map)
 ```
 
-
 #### Table 3. Impaired Waterways
+
 This data was accessed [here](https://www.epa.gov/waterdata/get-data-access-public-attains-data#AttainsGeo). Note that much of EPA data runs on ArcPro now, so I added this using the server connection in ArcPro, then downloaded the data as an excel to analyze in R.
 
-Note that I intend to continue working on this table. 
+Note that I intend to continue working on this table.
+
 ```{r}
 #| label: Impaired Waterways
 #| message: false
