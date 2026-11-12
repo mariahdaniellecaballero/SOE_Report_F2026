@@ -1,0 +1,4 @@
+GeoType,GeoID,GeoName,happening,human,affectweather,attrsealevels,attrflood,exp,transitioneconomy,regulate,president,congress,governor,localofficials,corporations
+national,9999,US,69.39,58.07,63.87,57.56,57.33,46.8,66.42,73.92,59.34,60.8,53.3,55.05,67.74
+state,25,Massachusetts,76.07,64.86,72.89,65.82,69.18,53.41,75.69,79.65,66.65,68.2,57.3,58.88,73.73
+county,25021,"Norfolk County, Massachusetts",78.26,66.38,75.01,70.23,71.2,54.8,75.6,80.93,68.73,71.12,60.46,59.89,76.52

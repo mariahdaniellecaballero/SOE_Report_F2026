@@ -1,0 +1,700 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata>
+  <idinfo>
+    <citation>
+      <citeinfo>
+        <origin>U.S. Geological Survey</origin>
+        <pubdate>20210831</pubdate>
+        <title>2018 mean high water shoreline of the coast of MA used in shoreline change analysis</title>
+        <edition>1</edition>
+        <geoform>vector digital data</geoform>
+        <serinfo>
+          <sername>data release</sername>
+          <issue>doi:10.5066/P9O8QA8N</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Woods Hole Coastal and Marine Science Center, Woods Hole, MA</pubplace>
+          <publish>U.S. Geological Survey, Coastal and Marine Geology Program</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.5066/P9O8QA8N</onlink>
+        <onlink>https://www.sciencebase.gov/catalog/item/6102e0aad34ef8d7055eb3bf</onlink>
+        <lworkcit>
+          <citeinfo>
+            <origin>Marie K. Bartlett</origin>
+            <origin>Amy S. Farris</origin>
+            <origin>Kathryn M. Weber</origin>
+            <origin>Emily A. Himmelstoss</origin>
+            <pubdate>2021</pubdate>
+            <title>Massachusetts Shoreline Change Project: A GIS Compilation of Vector Shorelines (1844-2018)</title>
+            <edition>1</edition>
+            <geoform>vector digital data</geoform>
+            <serinfo>
+              <sername>data release</sername>
+              <issue>doi:10.5066/P9O8QA8N</issue>
+            </serinfo>
+            <pubinfo>
+              <pubplace>Reston, VA</pubplace>
+              <publish>U.S. Geological Survey</publish>
+            </pubinfo>
+            <othercit>Suggested citation: Bartlett, M.K., Farris, A.S., Weber, K.M., and Himmelstoss, E.A., 2021, Massachusetts shoreline change project—A GIS compilation of vector shorelines for the 2021 update: U.S. Geological Survey data release, https://doi.org/10.5066/P9O8QA8N</othercit>
+            <onlink>https://www.sciencebase.gov/catalog/item/60ff09abd34e3ccd830d5dac</onlink>
+            <onlink>https://doi.org/10.5066/P9O8QA8N</onlink>
+          </citeinfo>
+        </lworkcit>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>The Massachusetts Office of Coastal Zone Management launched the Shoreline Change Project in 1989 to identify erosion-prone areas of the coast by compiling a database of historical (mid 1800's-1989) shoreline positions. Trends of shoreline position over long and short-term timescales provide information to landowners, managers, and potential buyers about possible future impacts to coastal resources and infrastructure. In 2001, a 1994 shoreline was added to calculate both long- and short-term shoreline change rates at 40-meter intervals along ocean-facing sections of the Massachusetts coast. In the 2013 update, two oceanfront shorelines for Massachusetts were added using 2008-2009 color aerial orthoimagery and 2007 topographic lidar datasets obtained from NOAA's Ocean Service, Coastal Services Center. In the 2018 update, two new mean high water (MHW) shorelines for the Massachusetts coast extracted from lidar data between 2010-2014 were added to the dataset.
+This 2021 update includes one new shoreline extracted from lidar data collected in 2018 by the U.S. Army Corps of Engineers (USACE) Joint Airborne Lidar Bathymetry Technical Center of Expertise (JALBTCX). This new shoreline was extracted for the North Shore, South Shore, Cape Cod Bay, Outer Cape, South Cape, Nantucket, Martha’s Vineyard, and a small portion Buzzard’s Bay. 2018 Lidar data was not available for Boston or the Elizabeth Islands region. This new shoreline was extracted from the lidar survey using either a profile method or contour method, depending on the location of the shoreline. This data release also includes a compilation of previously published historical shoreline positions spanning 170 years (1844 to 2014), intended to be used as an authoritative shoreline database for the state. This data is an update to the Massachusetts Office of Coastal Zone Management Shoreline Change Project.</abstract>
+      <purpose>Shoreline positions serve as easily understood features that can be used to describe the movement of beaches through time. This shoreline dataset is a mean high water (MHW) datum-based shoreline extracted using both a profile method and a contour method. These data are used in conjunction with other shoreline files to calculate rates of shoreline change. Associated with this dataset is a horizontal uncertainty value for each shoreline included in the attribute table, a proxy-datum bias reference line that corrects for the unidirectional offset between the mean high water (MHW) elevation of this dataset and other historical high water line (HWL) shoreline positions at this location, and an estimate of the uncertainty of this proxy-datum bias. See the first process step for essential information to understand these data and other shoreline change related data.</purpose>
+      <supplinf>Cross-referenced citations are applicable to the complete dataset as a whole. Additional citations are located within individual process steps that pertain specifically to the method described in that step. When this datum-based MHW shoreline is compared to historical proxy-based HWL shorelines (e.g., when calculating shoreline change rates), the result may be affected by an offset between the two types of shorelines. For open-ocean sandy beaches, historical, proxy-based HWL shorelines tend to be landward of datum-based MHW shorelines. This is a known unidirectional offset between proxy-based and datum-based shoreline features. This shoreline data has an associated uncertainty value that quantifies the measurement and positional errors associated with this datum-based MHW lidar shoreline as well as the offset between the MHW elevation of the lidar and the historical HWL shorelines. These data are used in conjunction with the shoreline files to calculate rates of shoreline change.</supplinf>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <rngdates>
+          <begdate>20180509</begdate>
+          <enddate>20180905</enddate>
+        </rngdates>
+      </timeinfo>
+      <current>ground condition of the data these shorelines are based</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>None planned</update>
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-71.1231</westbc>
+        <eastbc>-69.9288</eastbc>
+        <northbc>42.8777</northbc>
+        <southbc>41.2389</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>ISO 19115 Topic Category</themekt>
+        <themekey>geoscientificInformation</themekey>
+        <themekey>oceans</themekey>
+        <themekey>environment</themekey>
+      </theme>
+      <theme>
+        <themekt>None</themekt>
+        <themekey>USGS</themekey>
+        <themekey>U.S. Geological Survey</themekey>
+        <themekey>Coastal and Marine Geology Program</themekey>
+        <themekey>Woods Hole Coastal and Marine Science Center</themekey>
+        <themekey>WHCMSC</themekey>
+        <themekey>Massachusetts Coastal Zone Management</themekey>
+        <themekey>MA CZM</themekey>
+        <themekey>National Assessment of Shoreline Change Project</themekey>
+        <themekey>Massachusetts Shoreline Change Project</themekey>
+        <themekey>DSAS</themekey>
+        <themekey>Digital Shoreline Analysis System</themekey>
+        <themekey>Shoreline</themekey>
+        <themekey>Shoreline Change</themekey>
+        <themekey>Mean High Water</themekey>
+        <themekey>MHW</themekey>
+      </theme>
+      <theme>
+        <themekt>USGS Thesaurus</themekt>
+        <themekey>coastal processes</themekey>
+        <themekey>geospatial datasets</themekey>
+      </theme>
+      <theme>
+        <themekt>USGS Metadata Identifier</themekt>
+        <themekey>USGS:6102e0aad34ef8d7055eb3bf</themekey>
+      </theme>
+      <place>
+        <placekt>None</placekt>
+        <placekey>United States</placekey>
+        <placekey>Atlantic Coast</placekey>
+        <placekey>New England</placekey>
+        <placekey>Massachusetts</placekey>
+      </place>
+    </keywords>
+    <accconst>None</accconst>
+    <useconst>Public domain data from the U.S. Government are freely redistributable with proper metadata and source attribution. Please recognize the U.S. Geological Survey as the originator of the dataset.</useconst>
+    <ptcontac>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey</cntorg>
+          <cntper>Marie K. Bartlett</cntper>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical address</addrtype>
+          <address>384 Woods Hole Road</address>
+          <city>Woods Hole</city>
+          <state>MA</state>
+          <postal>02543-1598</postal>
+          <country>USA</country>
+        </cntaddr>
+        <cntvoice>508-548-8700 x2306</cntvoice>
+        <cntfax>508-547-2310</cntfax>
+        <cntemail>mbartlett@usgs.gov</cntemail>
+      </cntinfo>
+    </ptcontac>
+    <browse>
+      <browsen>https://www.sciencebase.gov/catalog/file/get/6102e0aad34ef8d7055eb3bf?name=MA_2018_MHW_shoreline_browse.PNG</browsen>
+      <browsed>Map view of data</browsed>
+      <browset>PNG</browset>
+    </browse>
+    <native>Microsoft Windows 10 Version 6.2 (Build 1909) Esri ArcGIS 10.7.1.11595</native>
+    <crossref>
+      <citeinfo>
+        <origin>E.R. Thieler</origin>
+        <origin>T.L. Smith</origin>
+        <origin>Julia Knisel</origin>
+        <origin>D.W. Sampson</origin>
+        <pubdate>2013</pubdate>
+        <title>Massachusetts Shoreline Change Mapping and Analysis Project, 2012 Update</title>
+        <geoform>Open-File Report</geoform>
+        <serinfo>
+          <sername>Open-File Report</sername>
+          <issue>2012-1189</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://pubs.usgs.gov/of/2012/1189/</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Theresa L. Smith</origin>
+        <origin>Emily A. Himmelstoss</origin>
+        <origin>E. Robert Thieler</origin>
+        <pubdate>2013</pubdate>
+        <title>Massachusetts Shoreline Change Project: A GIS Compilation of Vector Shorelines and Associated Shoreline Change Data for the 2013 update</title>
+        <geoform>Open-File Report</geoform>
+        <serinfo>
+          <sername>Open-File Report</sername>
+          <issue>2012-1183</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://pubs.usgs.gov/of/2012/1183/</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>E. Robert Thieler</origin>
+        <origin>James F. O'Connell</origin>
+        <origin>Courtney A. Schupp</origin>
+        <pubdate>2001</pubdate>
+        <title>The Massachusetts Shoreline Change Project: 1800s to 1994 Technical Report</title>
+        <geoform>Administrative report</geoform>
+        <pubinfo>
+          <pubplace>Woods Hole Coastal and Marine Science Center, Woods Hole, MA</pubplace>
+          <publish>U.S. Geological Survey, Coastal and Marine Geology Program</publish>
+        </pubinfo>
+        <onlink>https://web.whoi.edu/seagrant/wp-content/uploads/sites/24/2015/01/WHOI-T-01-001-Thieler-E.R.-The-Mass.-Shorel.pdf</onlink>
+        <onlink>https://www.mass.gov/service-details/massachusetts-shoreline-change-project</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Cheryl J. Hapke</origin>
+        <origin>Emily A. Himmelstoss</origin>
+        <origin>Meredith G. Kratzmann</origin>
+        <origin>Jeffrey H. List</origin>
+        <origin>E. Robert Thieler</origin>
+        <pubdate>2011</pubdate>
+        <title>The National Assessment of Shoreline Change: Historical Shoreline Change along the New England and Mid-Atlantic Coasts</title>
+        <geoform>Open-File report</geoform>
+        <serinfo>
+          <sername>Open-File Report</sername>
+          <issue>2010-1118</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://pubs.usgs.gov/of/2010/1118/</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Kathryn M. Weber</origin>
+        <origin>Jeffrey H. List</origin>
+        <origin>Karen L.M. Morgan</origin>
+        <pubdate>2005</pubdate>
+        <title>An operational mean high water datum for determination of shoreline position from topographic lidar data</title>
+        <geoform>Open-File Report</geoform>
+        <serinfo>
+          <sername>Open-File Report</sername>
+          <issue>2005-1027</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://pubs.usgs.gov/of/2005/1027/</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Emily A. Himmelstoss</origin>
+        <origin>Amy S. Farris</origin>
+        <origin>Rachel E. Henderson</origin>
+        <origin>Meredith G. Kratzmann</origin>
+        <origin>Ayhan Ergul</origin>
+        <origin>Ouya Zhang</origin>
+        <origin>Jessica L. Zichichi</origin>
+        <pubdate>2018</pubdate>
+        <title>Digital Shoreline Analysis System (version 5.0): U.S. Geological Survey software</title>
+        <geoform>Software release</geoform>
+        <serinfo>
+          <sername>software release</sername>
+          <issue>version 5.0</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://www.usgs.gov/centers/whcmsc/science/digital-shoreline-analysis-system-dsas</onlink>
+        <onlink>https://code.usgs.gov/cch/dsas</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Emily A. Himmelstoss</origin>
+        <origin>Amy S. Farris</origin>
+        <origin>Kathryn M. Weber</origin>
+        <pubdate>20181126</pubdate>
+        <title>Massachusetts Shoreline Change Project: A GIS Compilation of Vector Shorelines for the 2018 Update</title>
+        <edition>1</edition>
+        <geoform>vector digital data</geoform>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.5066/P9O7S72B</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Peter Ruggiero</origin>
+        <origin>Jeffrey H. List</origin>
+        <pubdate>200909</pubdate>
+        <title>Improving Accuracy and Statistical Reliability of Shoreline Position and Change Rate Estimates</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Coastal Research</sername>
+          <issue>v.255</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>Coastal Education and Research Foundation</publish>
+        </pubinfo>
+        <othercit>ppg. 1069-1081</othercit>
+        <onlink>https://doi.org/10.2112/08-1051.1</onlink>
+      </citeinfo>
+    </crossref>
+  </idinfo>
+  <dataqual>
+    <attracc>
+      <attraccr>The attributes are based on the requirements of the Digital Shoreline Analysis System (DSAS) software (please refer to cross reference for citation), and have gone through a series of quality assurance procedures.</attraccr>
+    </attracc>
+    <logic>Adjacent shoreline segments do not overlap and are not necessarily continuous. Shorelines were visually assessed in map view to verify that no erroneous data were included.</logic>
+    <complete>Although not a continuous shoreline for the entire coast of Massachusetts, this shoreline file is complete and contains all shoreline segments for the state where shoreline position data could be extracted using either the contour or profile method. These data adequately represented the shoreline position at the time of the survey. Remaining gaps in these data, if applicable, are a consequence of non-existing data, existing data that did not meet quality assurance standards, or where shorelines were derived by a different method.</complete>
+    <posacc>
+      <horizpa>
+        <horizpar>For the new 2018 profile-method lidar shoreline, this uncertainty includes four components: 1) the 95% confidence interval on the linear regression estimate of the shoreline position; 2) the vertical error of the raw lidar data as reported in the lidar data’s metadata; 3) the 15 cm vertical error in our chosen value of MHW,  and 4) the uncertainty due to extrapolation. These four components of uncertainty were added in quadrature to yield a total error for each shoreline point. Along with the uncertainty associated with shorelines extracted using this method, there is also a horizontal offset between the datum-based lidar MHW shoreline and the proxy-based historical shorelines such as those derived from NOAA T-sheets and aerial photos. This offset nearly always acts in one direction and these uncertainties and offsets are accounted for in the associated data release containing rates and a proxy-datum bias feature.</horizpar>
+      </horizpa>
+    </posacc>
+    <lineage>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Department of Commerce (DOC)</origin>
+            <origin>National Oceanic and Atmospheric Administration (NOAA)</origin>
+            <origin>National Ocean Service (NOS)</origin>
+            <origin>Office for Coastal Management (OCM)</origin>
+            <pubdate>20181108</pubdate>
+            <title>2018 USACE NCMP Topobathy Lidar: East Coast (CT, MA, ME, NC, NH, RI, SC)</title>
+            <geoform>tabular digital data</geoform>
+            <pubinfo>
+              <pubplace>Charleston, SC</pubplace>
+              <publish>NOAA's Ocean Service, Office for Coastal Management (OCM)</publish>
+            </pubinfo>
+            <onlink>https://coast.noaa.gov/dataviewer/#/lidar/search//details/8691</onlink>
+            <onlink>https://www.fisheries.noaa.gov/inport/item/55882</onlink>
+            <onlink>https://coast.noaa.gov/dataviewer</onlink>
+            <onlink>https://coast.noaa.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>online</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20180509</begdate>
+              <enddate>20180905</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>2018 lidar</srccitea>
+        <srccontr>The bare earth point cloud data in LAS format were used to extract shorelines using methods described in the process steps. Using the cart method to download the data, the data were downloaded in the UTM Zone 19 projection with the NAD83 horizontal datum and NAVD88 vertical datum with horizontal and vertical units in meters.</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>NOAA Office for Coastal Management (NOAA/OCM)</origin>
+            <pubdate>20190318</pubdate>
+            <title>2018 USACE NCMP Topobathy Lidar DEM: East Coast (CT, MA, ME, NC, NH, RI, SC))</title>
+            <geoform>raster digital data</geoform>
+            <pubinfo>
+              <pubplace>Charleston, SC</pubplace>
+              <publish>NOAA's Ocean Service, Office for Coastal Management (OCM)</publish>
+            </pubinfo>
+            <onlink>https://coast.noaa.gov/dataviewer/#/lidar/search/where:ID=8691</onlink>
+            <onlink>https://coast.noaa.gov/htdata/raster2/elevation/USACE_EastCoast_DEM_2018_8691/</onlink>
+            <onlink>https://coast.noaa.gov/dataviewer</onlink>
+            <onlink>https://coast.noaa.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>online</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20180509</begdate>
+              <enddate>20180905</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>2018 DEM</srccitea>
+        <srccontr>The raster digital elevation model (in GeoTIFF format) was used to extract a polyline shoreline. Using the cart method to download the data, the data were downloaded in the UTM Zone 19 projection with the NAD83 horizontal datum and NAVD88 vertical datum with horizontal and vertical units in meters.</srccontr>
+      </srcinfo>
+      <procstep>
+        <procdesc>Explanation of the methods used to delineate shorelines that are a part of this update for the Massachusetts Office of Coastal Zone Management Shoreline Change Project: This data release contains a new 2018 MHW shoreline extracted from lidar data that covers the North Shore, South Shore, Cape Cod Bay, Outer Cape, South Cape, a small portion of Buzzard’s Bay, Martha’s Vineyard, and Nantucket. Lidar data for 2018 were not available for Boston or the Elizabeth Islands region.
+
+MHW shorelines are datum-based and in the case of the shorelines used here, were extracted from lidar data using a profile method, whenever possible, or a contour method. For profile open-ocean coast, the elevation of MHW was obtained from Weber and others (2005). Since Weber and others (2005) only covers open-ocean coast, all MHW elevations for profile not open ocean-coast shorelines come from NOAA's vdatum (version 3.8; https://vdatum.noaa.gov/).
+
+Historical vector shorelines digitized from georegistered T-sheets using standard editing tools in ArcMap provide a proxy-based high water line (HWL) feature that is not tidally-referenced. Individually these shorelines are stored as polyline shapefiles. All shorelines have an uncertainty value listed in the attribute table that provides the horizontal uncertainty associated with the shoreline, regardless of the method used. The shoreline database contains both MHW and HWL shorelines, which can lead to incorrect estimates of rates of change since visually identified HWL-type proxy shorelines are virtually never coincident with datum-based MHW-type shorelines. In fact, HWL shorelines are almost universally estimated to be higher (landward) on the beach profile than MHW shorelines. Not accounting for this offset will cause shoreline change rates to be biased toward slower shoreline retreat, progradation rather than retreat, or faster progradation than in reality (for the typical case where datum-based MHW shorelines are more recent data than the proxy-based HWL shoreline dates). A proxy-datum bias (PDB) describes the unidirectional horizontal offset that occurs between the MHW shoreline and the HWL shoreline, and is stored as a line feature class appended to the reference baseline, with an attribute for the bias value as well as the bias uncertainty. For more information about the proxy-datum bias, see Ruggiero and List (2009)
+
+All the following process steps were completed by the same person: Marie K. Bartlett</procdesc>
+        <procdate>2020</procdate>
+        <proccont>
+          <cntinfo>
+            <cntperp>
+              <cntper>Marie K. Bartlett</cntper>
+            </cntperp>
+            <cntaddr>
+              <addrtype>mailing and physical</addrtype>
+              <address>384 Woods Hole Rd</address>
+              <city>Woods Hole</city>
+              <state>MA</state>
+              <postal>02543</postal>
+            </cntaddr>
+            <cntvoice>508-548-8700 x2306</cntvoice>
+            <cntemail>mbartlett@usgs.gov</cntemail>
+          </cntinfo>
+        </proccont>
+      </procstep>
+      <procstep>
+        <procdesc>Whenever possible, a profile method was used to extract the operational MHW shoreline from the lidar point cloud data, using a Matlab-based approach (Matlab version 2019b) similar to the one developed by Stockdon and others (2002). Elevation values for the height of MHW were determined from vdatum (version 3.8) provided by NOAA (https://vdatum.noaa.gov/). We continued the practice set out by Weber and others, (2005) of using one MHW value for a continuous section of coast (as opposed to using a continuously varying value). We chose this value such that it is always within 15 cm of the value returned by vdatum at any point along the coast. For example, we used MHW = 0.98 m for the entire Outer Cape even though vdatum shows it varying slightly over the basin. For the south shore of Cape Cod we used an average MHW elevation of 0.2 meters from Falmouth to approximately Waquoit and 0.50 meters from approximately Waquoit to Chatham.
+
+This profile method uses a coast-following reference line with 20 m spaced profiles. All lidar data points that are within 1 m of each profile line are associated with that profile. All work is done on the 2 m wide profiles, working on a single profile at a time. For each profile, a linear regression was fit through data points on the foreshore and the regression was evaluated at the MHW elevation to yield the cross-shore position of the MHW shoreline. If there was a data gap at MHW or if the MHW elevation was obscured by water points, the linear regression was simply extrapolated to the MHW elevation. Foreshore beach slope is defined as the slope of the regression line.
+
+Each MHW shoreline point that was extracted using this profile method has an uncertainty associated with it. For the new 2018 lidar shoreline, this uncertainty includes four components: 1) the 95% confidence interval on the linear regression estimate of the shoreline position; 2) the vertical error of the raw lidar data as reported in the lidar data’s metadata; 3) a 15 cm vertical error in our chosen value of MHW, and; 4) the uncertainty due to extrapolation (if the shoreline was determined using extrapolation). These four components of uncertainty were added in quadrature to yield a total error for each shoreline point. The uncertainty for the 2018 shoreline was calculated slightly differently than the uncertainty for the previous lidar shorelines. For details on the uncertainty for lidar shorelines prior to the 2018 shoreline, see pp.12-13 under the section titled Lidar-Derived MHW Shoreline Position Uncertainty in Hapke and others (2011).
+
+There is a known horizontal offset between the datum-based lidar MHW shoreline and the proxy-based historical shorelines on open-ocean sandy beaches that nearly always acts in one direction (Ruggiero and List, 2009). In order to estimate the bias between these two types of shorelines, wave data from a nearby buoy is needed to calculate wave run-up. Many of the sheltered areas within the Massachusetts study area do not have nearby buoy data and a proxy-datum bias value cannot be calculated in these areas. Therefore, when this new datum-based MHW shoreline is compared to historic proxy-based HWL shorelines in these sheltered areas, there may be some artificial landward offset of the historic data that has not been quantified and could potentially influence the rates. The north facing shoreline of Martha's Vineyard tends to have lower wave energy, which would result in less run-up and yield a smaller offset between a proxy shoreline and a datum shoreline than would occur along open-ocean coasts</procdesc>
+        <procdate>2020</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Contour shoreline extraction: While the profile method of shoreline extraction is best for open-ocean coastlines, a contour method is used along sheltered sections of the coast that were too crenulated for the profile method. The elevation of MHW was used from Weber and others, 2005 when available. In areas not covered by Weber and others (2005), NOAA's vdatum (version 3.8; https://vdatum.noaa.gov/) is used to determine MHW. To extract the MHW shoreline from each DEM surface, the operational MHW elevation was entered into the ArcGIS tool Contour List as the contour value. This step was iterated for each individual DEM in the study area. As a result, individual shapefiles were created for each DEM. The shoreline was then manually edited with the lidar data displayed with categorized elevation values to highlight the MHW values. Segments of the contour that did not fall near MHW were removed. Sometimes the lidar data did not extend down to MHW, resulting in gaps in the contour. Each contour shoreline was generalized using the Smooth Line tool (ArcToolbox &gt; Cartography &gt; Generalization &gt; Smooth Line), applying the PAEK algorithm with a 5 m tolerance. The shoreline features were then merged (ArcToolbox &gt; Data Management &gt; General &gt; Merge) into one feature class. Each contour shoreline was given an average horizontal positional uncertainty of 2 m. The resulting contour shoreline was merged with the profile method shoreline using the Merge tool in Esri’s ArcToolbox &gt; Data management &gt; General &gt; Merge to generate one complete shoreline file for the state.</procdesc>
+        <procdate>2020</procdate>
+        <proccont>
+          <cntinfo>
+            <cntperp>
+              <cntper>Marie K. Bartlett</cntper>
+              <cntorg>U.S. Geological Survey</cntorg>
+            </cntperp>
+            <cntpos>Geologist</cntpos>
+            <cntaddr>
+              <addrtype>mailing and physical</addrtype>
+              <address>384 Woods Hole Rd</address>
+              <city>Woods Hole</city>
+              <state>MA</state>
+              <postal>02543</postal>
+              <country>USA</country>
+            </cntaddr>
+            <cntvoice>508-548-8700 x2306</cntvoice>
+            <cntemail>mbartlett@usgs.gov</cntemail>
+          </cntinfo>
+        </proccont>
+      </procstep>
+      <procstep>
+        <procdesc>The profile method shoreline and contour method shoreline were merged into a single feature class using Esri's ArcToolbox &gt; Data Management &gt; General &gt; Merge. The feature class was exported out of the geodatabase to shapefile format by right-clicking on the feature class name in the table of contents of the ArcMap project and choosing Export &gt; Shapefile (single)</procdesc>
+        <procdate>2021</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>The exported shoreline shapefile was projected in Esri's ArcToolbox  &gt; Data Management Tools &gt; Projections and Transformations &gt; Project. Parameters: input projection - UTM zone 19N (WGS84); output projection - geographic coordinates (WGS84); transformation = none.</procdesc>
+        <procdate>2021</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Tweaked a thesaurus name (20211117).</procdesc>
+        <procdate>20211117</procdate>
+        <proccont>
+          <cntinfo>
+            <cntorgp>
+              <cntorg>U.S. Geological Survey</cntorg>
+              <cntper>VeeAnn A. Cross</cntper>
+            </cntorgp>
+            <cntpos>Marine Geologist</cntpos>
+            <cntaddr>
+              <addrtype>Mailing and Physical</addrtype>
+              <address>384 Woods Hole Road</address>
+              <city>Woods Hole</city>
+              <state>MA</state>
+              <postal>02543-1598</postal>
+            </cntaddr>
+            <cntvoice>508-548-8700 x2251</cntvoice>
+            <cntfax>508-457-2310</cntfax>
+            <cntemail>vatnipp@usgs.gov</cntemail>
+          </cntinfo>
+        </proccont>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spdoinfo>
+    <direct>Vector</direct>
+    <ptvctinf>
+      <sdtsterm>
+        <sdtstype>String</sdtstype>
+        <ptvctcnt>699</ptvctcnt>
+      </sdtsterm>
+    </ptvctinf>
+  </spdoinfo>
+  <spref>
+    <horizsys>
+      <geograph>
+        <latres>0.0197394080</latres>
+        <longres>0.0264580536</longres>
+        <geogunit>Decimal seconds</geogunit>
+      </geograph>
+      <geodetic>
+        <horizdn>WGS_1984</horizdn>
+        <ellips>WGS_84</ellips>
+        <semiaxis>6378137.0</semiaxis>
+        <denflat>298.257223563</denflat>
+      </geodetic>
+    </horizsys>
+  </spref>
+  <eainfo>
+    <detailed>
+      <enttyp>
+        <enttypl>MA_shoreline_2018_all.shp</enttypl>
+        <enttypd>This dataset includes polyline MHW shorelines for the coastal region of Massachusetts.</enttypd>
+        <enttypds>USGS</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>FID</attrlabl>
+        <attrdef>Internal feature number.</attrdef>
+        <attrdefs>ESRI</attrdefs>
+        <attrdomv>
+          <udom>Sequential unique whole numbers that are automatically generated.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Shape</attrlabl>
+        <attrdef>Feature geometry.</attrdef>
+        <attrdefs>ESRI</attrdefs>
+        <attrdomv>
+          <udom>Coordinates defining the features.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Contour</attrlabl>
+        <attrdef>The height of MHW was determined from vdatum provided by NOAA. (https://vdatum.noaa.gov/). One MHW value, reported here in meter units, was used for a continuous section of coast (as opposed to using a continuously varying value). This value is always within 15 cm of the value returned by vdatum at any point along the coast. This dataset combines two methods of shoreline extraction, contour and profile. A value of zero in this field indicates the profile method was used.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0.2</rdommin>
+            <rdommax>1.44</rdommax>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Date_</attrlabl>
+        <attrdef>Date of shoreline position in month/day/year (mm/dd/yyyy) format; date of survey as indicated on source material.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <udom>Date of the shoreline in mm/dd/yyyy</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Uncy</attrlabl>
+        <attrdef>The estimate of shoreline position uncertainty.  Methods used to calculate the uncertainty are listed in the process steps.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <udom>The estimate of shoreline position uncertainty.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Source</attrlabl>
+        <attrdef>Agency that provided shoreline feature or the data source used to digitize shoreline feature.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>lidar-USGS</edomv>
+            <edomvd>The data was derived from lidar by the U.S. Geological Survey.</edomvd>
+            <edomvds>USGS</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Source_b</attrlabl>
+        <attrdef>Method of deriving shoreline feature.  This shoreline was extracted using either the profile method or the contour method.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>profile</edomv>
+            <edomvd>The mean high water shoreline was extracted from lidar data using a profile method.</edomvd>
+            <edomvds>Producer defined</edomvds>
+          </edom>
+        </attrdomv>
+        <attrdomv>
+          <edom>
+            <edomv>contour</edomv>
+            <edomvd>The mean high water shoreline was extracted from lidar data using a contour method.</edomvd>
+            <edomvds>USGS</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Default_D</attrlabl>
+        <attrdef>In historical shoreline data the exact month and day of a shoreline are unknown.  This field is used to indicate when a default month and day are used.  It does not apply to this dataset, but is preserved for merging this shoreline feature with other historic shoreline data when used for change analysis.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>0</edomv>
+            <edomvd>False.  No default month and day were used.</edomvd>
+            <edomvds>USGS</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Region</attrlabl>
+        <attrdef>Subregion of Massachusetts coast where shoreline data are located. Other shoreline files extracted from different methods required that the data be split into regions and this field correlates to those extents. Shoreline change rates were calculated by region and in some cases, regions were further split into “sheltered”, “exposed”, “or headland” to accommodate baseline orientation requirements.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <udom>Character string of length 25</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Year_</attrlabl>
+        <attrdef>Four digit year of shoreline.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>2018</edomv>
+            <edomvd>The calendar year of the source data from which the shoreline feature was extracted.</edomvd>
+            <edomvds>USGS</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Type</attrlabl>
+        <attrdef>The vertical shoreline reference.</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <edom>
+            <edomv>MHW</edomv>
+            <edomvd>mean high water - a datum-based reference</edomvd>
+            <edomvds>USGS</edomvds>
+          </edom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>Shape_Leng</attrlabl>
+        <attrdef>Length of shoreline in meter units (WGS84, UTM zone 19N)</attrdef>
+        <attrdefs>USGS</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>6.87608295401</rdommin>
+            <rdommax>22475.4994351</rdommax>
+          </rdom>
+        </attrdomv>
+      </attr>
+    </detailed>
+  </eainfo>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey - ScienceBase</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical address</addrtype>
+          <address>Federal Center, Building 810, MS 302</address>
+          <city>Denver</city>
+          <state>CO</state>
+          <postal>80225</postal>
+          <country>USA</country>
+        </cntaddr>
+        <cntvoice>1-888-275-8747</cntvoice>
+        <cntemail>sciencebase@usgs.gov</cntemail>
+      </cntinfo>
+    </distrib>
+    <resdesc>The dataset contains the polyline shapefile of shoreline data derived from a contour and profile method, (MA_2018_MHW_Shoreline.shp and other shapefile components), browse graphic (MA_2018_MHW_shoreline_browse), and the FGDC CSDGM metadata in XML format.</resdesc>
+    <distliab>Neither the U.S. Government, the Department of the Interior, nor the USGS, nor any of their employees, contractors, or subcontractors, make any warranty, express or implied, nor assume any legal liability or responsibility for the accuracy, completeness, or usefulness of any information, apparatus, product, or process disclosed, nor represent that its use would not infringe on privately owned rights. The act of distribution shall not constitute any such warranty, and no responsibility is assumed by the USGS in the use of these data or related materials.
+
+Any use of trade, product, or firm names is for descriptive purposes only and does not imply endorsement by the U.S. Government.</distliab>
+    <stdorder>
+      <digform>
+        <digtinfo>
+          <formname>Shapefile</formname>
+          <formvern>ArcGIS 10.7.1</formvern>
+          <formspec>Esri polyline shapefile</formspec>
+          <formcont>Dataset contains the shapefile, browse graphic, and CSDGM metadata.</formcont>
+          <transize>11</transize>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>https://www.sciencebase.gov/catalog/file/get/6102e0aad34ef8d7055eb3bf</networkr>
+                <networkr>https://www.sciencebase.gov/catalog/item/6102e0aad34ef8d7055eb3bf</networkr>
+                <networkr>https://doi.org/10.5066/P9O8QA8N</networkr>
+              </networka>
+            </computer>
+            <accinstr>The first link downloads all the files on the dataset landing page. The second link is to the dataset landing page where individual files can be viewed and downloaded. The third link is to the data release main landing page.</accinstr>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <fees>None</fees>
+    </stdorder>
+    <techpreq>These data are available in a polyline shapefile format. The user must have software to read and process the data components of a shapefile.</techpreq>
+  </distinfo>
+  <metainfo>
+    <metd>20240319</metd>
+    <metc>
+      <cntinfo>
+        <cntperp>
+          <cntper>Marie K. Bartlett</cntper>
+          <cntorg>U.S. Geological Survey</cntorg>
+        </cntperp>
+        <cntaddr>
+          <addrtype>mailing and physical address</addrtype>
+          <address>384 Woods Hole Road</address>
+          <city>Woods Hole</city>
+          <state>MA</state>
+          <postal>02543-1598</postal>
+          <country>USA</country>
+        </cntaddr>
+        <cntvoice>508-548-8700</cntvoice>
+        <cntfax>508-548-8700 x2306</cntfax>
+        <cntemail>whsc_data_contact@usgs.gov</cntemail>
+        <cntinst>The metadata contact email address is a generic address in the event the person is no longer with USGS. (updated on 20240319)</cntinst>
+      </cntinfo>
+    </metc>
+    <metstdn>FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+    <mettc>local time</mettc>
+  </metainfo>
+</metadata>
