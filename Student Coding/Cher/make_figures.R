@@ -399,7 +399,6 @@ if (exists("methane")) {
   save_figure(p_emissions, "co2_methane_percent_change")
 }
 
-
 make_coastal_map <- function() {
   needed <- c("sf", "tigris", "httr2", "jsonlite")
   absent <- needed[!vapply(needed, requireNamespace, logical(1), quietly = TRUE)]
@@ -462,7 +461,7 @@ make_coastal_map <- function() {
   north_box <- c(-71.09, 42.20, -70.85, 42.37)
   south_box <- c(-70.86, 42.16, -70.72, 42.29)
   whole_box <- c(-71.09, 42.16, -70.72, 42.37)
-  view_box <- c(-71.09, 42.19, -70.77, 42.36)
+  view_box <- c(-71.09, 42.19, -70.77, 42.32)
 
   frame <- function(bbox) {
     sf::st_transform(sf::st_as_sfc(sf::st_bbox(
@@ -504,6 +503,12 @@ make_coastal_map <- function() {
 
   bounds <- frame(view_box)
   bb <- sf::st_bbox(bounds)
+  plot_bb <- c(
+    xmin = bb[["xmin"]] + (88 / 1186) * (bb[["xmax"]] - bb[["xmin"]]),
+    ymin = bb[["ymin"]] + (90 / 662) * (bb[["ymax"]] - bb[["ymin"]]),
+    xmax = bb[["xmax"]] - (40 / 1186) * (bb[["xmax"]] - bb[["xmin"]]),
+    ymax = bb[["ymax"]] - (58 / 662) * (bb[["ymax"]] - bb[["ymin"]])
+  )
   background_land <- clip(surrounding_land, bounds)
   highlighted_land <- clip(norfolk_land, bounds)
   town_panel <- clip(towns, bounds)
@@ -565,15 +570,29 @@ make_coastal_map <- function() {
   if (nrow(town_panel) > 1L) {
     for (i in seq_len(nrow(town_panel) - 1L)) {
       for (j in seq.int(i + 1L, nrow(town_panel))) {
-        shared <- suppressWarnings(sf::st_intersection(
-          sf::st_boundary(sf::st_geometry(town_panel[i, , drop = FALSE])),
-          sf::st_boundary(sf::st_geometry(town_panel[j, , drop = FALSE]))
-        ))
+        name_i <- tolower(town_panel$municipality[i])
+        name_j <- tolower(town_panel$municipality[j])
+        edge_i <- sf::st_boundary(sf::st_geometry(town_panel[i, , drop = FALSE]))
+        edge_j <- sf::st_boundary(sf::st_geometry(town_panel[j, , drop = FALSE]))
+        if (setequal(c(name_i, name_j), c("quincy", "braintree"))) {
+          braintree_edge <- if (name_i == "braintree") edge_i else edge_j
+          quincy_polygon <- if (name_i == "quincy") {
+            sf::st_geometry(town_panel[i, , drop = FALSE])
+          } else {
+            sf::st_geometry(town_panel[j, , drop = FALSE])
+          }
+          shared <- suppressWarnings(sf::st_intersection(
+            braintree_edge, sf::st_buffer(quincy_polygon, 150)
+          ))
+        } else {
+          shared <- suppressWarnings(sf::st_intersection(edge_i, edge_j))
+        }
         shared <- suppressWarnings(sf::st_collection_extract(
           shared, "LINESTRING", warn = FALSE
         ))
         if (length(shared) && any(!sf::st_is_empty(shared))) {
-          municipal_dividers[[length(municipal_dividers) + 1L]] <- shared
+          municipal_dividers[[length(municipal_dividers) + 1L]] <-
+            shared[!sf::st_is_empty(shared)]
         }
       }
     }
@@ -585,6 +604,22 @@ make_coastal_map <- function() {
   }
 
   town_labels <- sf::st_point_on_surface(town_panel)
+  label_xy <- sf::st_coordinates(town_labels)
+  town_label_data <- data.frame(
+    municipality = town_labels$municipality,
+    label_x = label_xy[, "X"],
+    label_y = label_xy[, "Y"]
+  )
+  town_label_data$label_y[
+    tolower(town_label_data$municipality) == "quincy"
+  ] <- town_label_data$label_y[
+    tolower(town_label_data$municipality) == "quincy"
+  ] - 950
+  town_label_data$label_y[
+    tolower(town_label_data$municipality) == "weymouth"
+  ] <- town_label_data$label_y[
+    tolower(town_label_data$municipality) == "weymouth"
+  ] - 750
 
   map <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = background_land, fill = "#F1F2F2", color = NA)
@@ -614,18 +649,19 @@ make_coastal_map <- function() {
     )
   }
   map <- map +
-    ggplot2::geom_sf_text(data = town_labels,
-                          ggplot2::aes(label = municipality),
-                          size = 2.8, color = "black", check_overlap = TRUE,
-                          family = font_family) +
+    ggplot2::geom_text(data = town_label_data,
+                       ggplot2::aes(x = label_x, y = label_y,
+                                    label = municipality),
+                       size = 2.8, color = "black", check_overlap = TRUE,
+                       family = font_family) +
     ggplot2::scale_fill_manual(
       values = c("2030" = "#DCEBF3", "2050" = "#AFC9D9"),
       breaks = c("2030", "2050"), drop = FALSE
     ) +
     ggplot2::coord_sf(
       crs = sf::st_crs(26986),
-      xlim = c(bb[["xmin"]], bb[["xmax"]]),
-      ylim = c(bb[["ymin"]], bb[["ymax"]]),
+      xlim = c(plot_bb[["xmin"]], plot_bb[["xmax"]]),
+      ylim = c(plot_bb[["ymin"]], plot_bb[["ymax"]]),
       expand = FALSE, datum = NA
     ) +
     ggplot2::labs(x = NULL, y = NULL, fill = NULL, color = NULL) +
@@ -643,7 +679,7 @@ make_coastal_map <- function() {
       plot.margin = ggplot2::margin(0, 0, 0, 0)
     )
 
-  save_figure(map, "coastal_change", width = 8.5, height = 5.2)
+  save_figure(map, "coastal_change", width = 8.5, height = 4.25)
 }
 
 make_coastal_map()
