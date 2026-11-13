@@ -164,7 +164,7 @@ p_yale <- ggplot(
   ) +
   labs(
     x = NULL,
-    y = "Respondents (%)",
+    y = "Respondents with belief (%)",
     fill = NULL
   ) +
   base_theme +
