@@ -1,0 +1,205 @@
+---
+title: "Dr_Cab_NRI"
+format: html
+editor: visual
+---
+## Global Aesthetic Options
+```{r}
+library(sf)
+library(arcgis)
+library(mapview)
+library(janitor)
+library(tidyverse)
+library(sysfonts)
+library(showtext)
+
+# colors 
+soe_colors <- c(
+  red    = "#DD5A54",
+  blush  = "#EDBFB2",
+  orange = "#EC940C",
+  blue   = "#608ED8",
+  olive  = "#737F2E",
+  forest = "#283523"
+)
+soe_palette <- unname(soe_colors)
+
+## add fonts
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+# ggplot theme
+theme_soe <- function(base_size = 12) {
+  theme_minimal(base_size = base_size, base_family = "Manrope") +
+    theme(
+      text             = element_text(color = soe_colors["forest"]),
+      plot.title       = element_text(family = "Fraunces", face = "bold",
+                                      size = rel(1.4)),
+      plot.subtitle    = element_text(face = "italic", size = rel(1.1)),
+      axis.title       = element_text(face = "bold"),
+      legend.position  = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.border     = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.background = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.text       = element_text(family = "Fraunces", face = "bold",
+                                      color = soe_colors["forest"])
+    )
+}
+theme_set(theme_soe())
+
+# create discrete and continuous palettes
+options(
+  ggplot2.discrete.colour = list(soe_palette),
+  ggplot2.discrete.fill   = list(soe_palette),
+  # continuous scales: blush -> red
+  ggplot2.continuous.colour = function(...) scale_colour_gradient(
+    low = soe_colors["blush"], high = soe_colors["red"], ...),
+  ggplot2.continuous.fill = function(...) scale_fill_gradient(
+    low = soe_colors["blush"], high = soe_colors["red"], ...)
+)
+```
+
+
+## Read and tidy data 
+```{r}
+setwd("~/Google Drive/My Drive/Teaching/ES-314/Class Research/data")
+
+nri <- read_csv("NRI/NRI_Table_CensusTracts.csv") |> 
+  clean_names() |> 
+  filter(stateabbrv %in% c("MA", "CT", "ME", "NH", "RI", "VT")) |> 
+  select(tractfips, county, stateabbrv, risk_value, hwav_riskv, hrcn_riskv) |> 
+  mutate(
+    risk_pct_rank = percent_rank(risk_value) * 100,
+    hwav_pct_rank = cume_dist(hwav_riskv) * 100,
+    hrcn_pct_rank = cume_dist(hrcn_riskv) * 100)
+```
+
+
+## 1. Average NRI scores
+Calculate average percentile rank risk score for Norfolk, and MA
+```{r}
+# MA- 48th percentile in NE
+nri |> filter(stateabbrv == "MA") |> select(risk_pct_rank) |> summary()
+
+
+# Norfolk County - 60th percentile in NE
+nri |> filter(stateabbrv == "MA" & county == "Norfolk") |> select(risk_pct_rank) |> summary()
+```
+
+
+## 2. Avg. Hurricane Risk Index
+Calculate average NRI score for Norfolk, and MA
+```{r}
+# MA- 52nd percentile in NE
+nri |> filter(stateabbrv == "MA") |> select(hrcn_pct_rank) |> summary()
+
+
+# Norfolk County - 66th percentile in NE
+nri |> filter(stateabbrv == "MA" & county == "Norfolk") |> select(hrcn_pct_rank) |> summary()
+```
+
+## 3. Avg. Heat Risk Index
+Calculate average NRI score for Norfolk, and MA
+```{r}
+# MA- 53rd percentile in NE
+nri |> filter(stateabbrv == "MA") |> select(hwav_pct_rank) |> summary()
+
+
+# Norfolk County - 36th percentile in NE
+nri |> filter(stateabbrv == "MA" & county == "Norfolk") |> select(hwav_pct_rank) |> summary()
+```
+
+## 4. Combined Bar graph
+```{r}
+score_cols <- c("risk_pct_rank", "hwav_pct_rank", "hrcn_pct_rank")
+
+# state scores
+by_state <- nri |>
+  group_by(stateabbrv) |>
+  summarise(
+    across(all_of(score_cols), ~ mean(.x, na.rm = TRUE))) |>
+  mutate(geography = if_else(stateabbrv == "MA", "Massachusetts", "EPA Region 1"))
+
+# county scores
+by_county <- nri |>
+  filter(stateabbrv == "MA", county == "Norfolk") |>
+  group_by(stateabbrv) |> 
+  summarise(
+    across(all_of(score_cols), ~ mean(.x, na.rm = TRUE))) |>
+  mutate(geography = "Norfolk County")
+
+# df for creating bar chart 
+bar_df <- bind_rows(by_state, by_county) |> 
+  pivot_longer(
+    cols = c(risk_pct_rank, hwav_pct_rank, hrcn_pct_rank),
+    names_to = "metric",
+    values_to = "avg_pct_rank") |>
+  mutate(
+    metric = factor(
+      metric,
+      levels = c("risk_pct_rank", "hwav_pct_rank", "hrcn_pct_rank"),
+      labels = c("Average Risk", "Average Heat Wave", "Average Hurricane")),
+    facet = factor(
+      geography,
+      levels = c("EPA Region 1", "Massachusetts", "Norfolk County"))) |> 
+filter(!(facet == "EPA Region 1" & stateabbrv == "MA")) |> 
+   mutate(stateabbrv = ifelse(stateabbrv == "MA", " ", stateabbrv))
+
+ggplot(bar_df, aes(x = stateabbrv, y = avg_pct_rank, fill = metric)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.8) +
+  geom_text(
+    aes(label = round(avg_pct_rank)),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3
+  ) +
+  facet_grid(~ facet, scales = "free_x", space = "free_x") +
+  labs(
+    x = NULL,
+    y = "Average percentile rank",
+    fill = NULL
+  ) + 
+  theme(legend.position = "right")
+
+rm(nri, by_county, by_state, bar_df, score_cols)
+```
+
+
+## 5. Map of Avg Projected Heat by cities/towns + county over it ? 
+https://www.nature.com/articles/s41597-026-06909-w [heat stress data from the past, HUGE files]
+https://share-open-data-metroboston.hub.arcgis.com/datasets/6f2c0c8e89f541a8bd8e5611da058bea_0/explore 
+
+[NASA data](https://www.earthdata.nasa.gov/data/catalog/sedac-ciesin-sedac-crv-uscrpc-2040-2049-1.00#overview), extreme heat is defined as number of events exceeding the 97.5th percentile of daily maximum baseline temperature for three consecutive days in the 2040s. 
+
+Note that I can't find a great downscaled raster for projected extreme data. 
+One option is to use the county level projections from NASA, overlay towns 
+and counties [read more here](https://www.mass.gov/info-details/massgis-data-2020-us-census-towns), 
+and then add an inset for Norfolk. 
+```{r}
+setwd("~/Google Drive/My Drive/Teaching/ES-314/Class Research/data") 
+
+clim_risk <- st_read("US_CRP_2040-2049/Shapefile/crv-us-climate-risk-proj-county-2040-2049.shp")
+
+clim_risk |> 
+  mutate(state = substring(GEOID, 1, 2)) |> 
+  filter(state == 25) |> 
+  mapview(zcol = "HeatExt")
+
+```
+
+
+## 6. Flood Risk Index & secondary risks 
+Power outages? Eagle-I percentile of power outages for each geography and flood risk index percentile 
+
+
+## 7. Heat index & secondary risks 
+kids under 5, elderly, homelesssness, disabilities, chronic health, english proficiency, 
+communities of color
+
+
+Rank most prevalent vulnerable community at each geography, bivariate map of heat
+index and outcome 
