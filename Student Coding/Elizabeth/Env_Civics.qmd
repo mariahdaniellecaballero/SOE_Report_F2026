@@ -1,0 +1,45 @@
+---
+title: "Env_Civics"
+format: html
+---
+
+## Installing Packages
+
+```{r}
+install.packages("tidyverse")
+install.packages("gt")
+install.packages("gtsummary")
+install.packages("readr")
+install.packages("rmarkdown")
+install.packages("gt")
+install.packages("gtsummary")
+install.packages("usethis")
+```
+
+```{r}
+#| label: load packages
+library(tidyverse)
+library(gt)
+library(gtsummary)
+library(readr)
+library(rmarkdown)
+```
+
+## Github
+```{r}
+library(usethis)
+
+usethis::use_git_config(
+  user.name  = "eh108-choropleth",
+  user.email = "eh108@wellesley.edu"
+)
+```
+
+## Github token
+```{r}
+#usethis::create_github_token()
+
+install.packages("gitcreds")
+gitcreds::gitcreds_set()
+
+```
