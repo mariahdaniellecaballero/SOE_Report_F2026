@@ -1,0 +1,154 @@
+---
+title: "Dr_Cab_AQI_API"
+format: html
+---
+
+## Set-up 
+```{r}
+library(sf)
+library(arcgis)
+library(mapview)
+library(janitor)
+library(tidyverse)
+library(sysfonts)
+library(showtext)
+library(tidyverse)
+library(RAQSAPI)
+
+
+# colors 
+soe_colors <- c(
+  red    = "#DD5A54",
+  blush  = "#EDBFB2",
+  orange = "#EC940C",
+  blue   = "#608ED8",
+  olive  = "#737F2E",
+  forest = "#283523"
+)
+soe_palette <- unname(soe_colors)
+
+## add fonts
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+# ggplot theme
+theme_soe <- function(base_size = 12) {
+  theme_minimal(base_size = base_size, base_family = "Manrope") +
+    theme(
+      text             = element_text(color = soe_colors["forest"]),
+      plot.title       = element_text(family = "Fraunces", face = "bold",
+                                      size = rel(1.4)),
+      plot.subtitle    = element_text(face = "italic", size = rel(1.1)),
+      axis.title       = element_text(face = "bold"),
+      legend.position  = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.border     = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.background = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.text       = element_text(family = "Fraunces", face = "bold",
+                                      color = soe_colors["forest"])
+    )
+}
+theme_set(theme_soe())
+```
+
+## Set up query 
+Note that you'll need to sign up for an account by typing "" into your browser. 
+Once you receive confirmation, I suggest following the instructions for the 
+`keyring` package in this [tutorial](https://cran.r-project.org/web/packages/RAQSAPI/vignettes/RAQSAPIvignette.html). 
+
+Next, we'll set some information based on the parameters, date, and state we want
+annual summaries for. You can see a list of parameters [here](https://aqs.epa.gov/aqsweb/documents/codetables/parameters.html). 
+
+It looks like there isn't any PM2.5 data available for Norfolk County, but there
+are observations for NO2 from two monitors, one in Great Blue Hill and another 
+in Quincy. 
+```{r}
+## check monitors in Norfolk (NO2 is still up, PM2.5 was retired in 2014)
+temp <- aqs_monitors_by_county(
+  parameter  = c("42602", "88101"),
+  bdate      = as.Date("20150101", format = "%Y%m%d"),
+  edate      = as.Date("20151231", format = "%Y%m%d"),
+  stateFIPS  = "25",
+  countycode = "021")
+
+
+norfolk_no2 <- aqs_annualsummary_by_county(
+  parameter  = "42602",
+  bdate      = as.Date("20150101", format = "%Y%m%d"),
+  edate      = as.Date("20251231", format = "%Y%m%d"),
+  stateFIPS  = "25",
+  countycode = "021"
+)
+
+## quick map
+norfolk_no2 |> 
+  filter(pollutant_standard == "NO2 1-hour 2010") |> 
+st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> mapview()
+
+## Faceted wrap of Average Annual Norfolk NO2 values
+norfolk_no2 <- norfolk_no2 |> 
+  filter(pollutant_standard == "NO2 1-hour 2010") |>   
+  mutate(location = ifelse(site_number == "3003", "Blue Hill Observatory", "Quincy")) |> 
+  select(year, location, arithmetic_mean)
+
+norfolk_no2 |> 
+  ggplot(aes(x = year, y = arithmetic_mean)) + 
+  geom_step() + 
+  scale_x_continuous(breaks = seq(2015, 2025, by = 1)) + 
+  labs(x = "year", y = "Average Annual No2") + 
+  facet_wrap(~location)
+
+```
+
+## Massachusetts averages
+```{r}
+## pull no2 data
+ma_no2 <- aqs_annualsummary_by_state(
+  parameter = "42602",
+  bdate     = as.Date("20150101", format = "%Y%m%d"),
+  edate     = as.Date("20251231", format = "%Y%m%d"),
+  stateFIPS = "25")
+
+## pull pm2.5 data
+ma_pm25 <- aqs_annualsummary_by_state(
+  parameter = "88101",
+  bdate     = as.Date("20150101", format = "%Y%m%d"),
+  edate     = as.Date("20251231", format = "%Y%m%d"),
+  stateFIPS = "25")
+
+## tidy the two dfs a bit more 
+ma_no2_tidy <- ma_no2 |> 
+  filter(pollutant_standard == "NO2 1-hour 2010") |>  
+  group_by(year) |> 
+ summarise(arithmetic_mean = mean(arithmetic_mean)) |> 
+  mutate(location = "Massachusetts") |> 
+    mutate(measure = "NO2 Parts per billion") |> 
+   select(year, location, arithmetic_mean, measure)
+
+
+ma_pm25_tidy <- ma_pm25 |> 
+  filter(pollutant_standard == "PM25 Annual 2024") |>  
+  group_by(year) |> 
+ summarise(arithmetic_mean = mean(arithmetic_mean)) |> 
+  mutate(location = "Massachusetts") |> 
+  mutate(measure = "PM2.5, Micrograms/cubic meter (LC)") |>
+   select(year, location, arithmetic_mean, measure)
+
+
+joined_df <-ma_no2_tidy |> 
+  bind_rows(ma_pm25_tidy)
+
+## plot
+joined_df |> 
+  ggplot(aes(x = year, y = arithmetic_mean, color = measure)) + 
+  geom_step(lwd = 1) + 
+  scale_x_continuous(breaks = seq(2015, 2025, by = 1)) + 
+  labs(x = "year", y = "Average Annual Measure") + 
+  facet_wrap(~measure, scales = "free_y") +
+  scale_color_manual(values = c("#EC940C","#608ED8")) 
+```
+
