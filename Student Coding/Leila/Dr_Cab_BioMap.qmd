@@ -10,6 +10,46 @@ library(sf)
 library(arcgis)
 library(mapview)
 library(janitor)
+library(treemapify)
+library(sysfonts)
+library(showtext)
+
+# colors 
+soe_colors <- c(
+  red    = "#DD5A54",
+  blush  = "#EDBFB2",
+  orange = "#EC940C",
+  blue   = "#608ED8",
+  olive  = "#737F2E",
+  forest = "#283523"
+)
+soe_palette <- unname(soe_colors)
+
+## add fonts
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+# ggplot theme
+theme_soe <- function(base_size = 12) {
+  theme_minimal(base_size = base_size, base_family = "Manrope") +
+    theme(
+      text             = element_text(color = soe_colors["forest"]),
+      plot.title       = element_text(family = "Fraunces", face = "bold",
+                                      size = rel(1.4)),
+      plot.subtitle    = element_text(face = "italic", size = rel(1.1)),
+      axis.title       = element_text(face = "bold"),
+      panel.grid.minor = element_blank(),
+      panel.border     = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.background = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.text       = element_text(family = "Fraunces", face = "bold",
+                                      color = soe_colors["forest"])
+    )
+}
+theme_set(theme_soe())
 ```
 
 ## Read in Priority Natural Communities Core
@@ -47,7 +87,7 @@ drop to maintain consistent dat structure, but may be work looking into! You can
 read more about metadata [here](https://www.mass.gov/info-details/massgis-data-biomap-the-future-of-conservation)
 ```{r}
 
-biomap_core_hab <- pncc |> select(layer) |> 
+biomap <- pncc |> select(layer) |> 
   bind_rows(aqua_core)|> select(layer) |> 
    bind_rows(wetland)|> select(layer) |> 
    bind_rows(rare_species)|> select(layer) |> 
@@ -56,7 +96,93 @@ biomap_core_hab <- pncc |> select(layer) |>
   mutate(id = 1:18761) |> 
   st_make_valid()
 
+rm(pncc, aqua_core, wetland, rare_species, forest, vernal_pool)
 ```
+
+## Read in Protected Lands
+I'm reading in the protected lands dataset and selecting the owner_type variable. 
+One thing I noticed is that there are quite a few categories with less than (2000) observations (in total, they make up less than 10% of the data), so I'm going to call 
+them "other" for now (Private Nonprofit, Public Nonprofit, Conservation Organization,
+Other, Unknown, and County). 
+```{r}
+# read in and tidy
+furl <- "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/openspace/FeatureServer/0"
+flayer <- arc_open(furl)
+protect <- arc_select(flayer) |> clean_names() |> select(owner_type) |> 
+  mutate(owner_type = case_when(
+  owner_type == "N" ~ "Other",
+  owner_type == "B" ~ "Other",
+  owner_type == "G" ~ "Other",
+  owner_type == "O" ~ "Other",
+  owner_type == "X" ~ "Other",
+  owner_type == "C" ~ "Other",
+  .default = owner_type)) |> st_make_valid()
+
+# dissolve polygons
+biomap_diss <- biomap |>
+  group_by(layer) |>
+  summarize(geometry = st_union(geometry))
+
+protect_diss <- protect |>
+  group_by(owner_type) |>
+  summarize(geometry = st_union(geometry))
+
+# calculate acres of biomap area by group
+biomap_denom <- biomap_diss |>
+  mutate(biomap_acres = as.numeric(st_area(geometry)) / 4046.856) |>
+  st_drop_geometry()
+
+# intersect with protected area polys and calculate areas
+protected_by_owner <- st_intersection(biomap_diss, protect_diss) |>
+  mutate(protected_acres = as.numeric(st_area(geometry)) / 4046.856) |>
+  st_drop_geometry() |>
+  select(layer, owner_type, protected_acres)
+
+# biomap category by ownership type
+tree_map_df <- protected_by_owner |>
+  left_join(biomap_denom, by = "layer") |>
+  mutate(pct_of_biomap = 100 * protected_acres/biomap_acres) |> 
+  mutate(owner_type = case_when(
+    owner_type == "F" ~ "Federal",
+    owner_type == "L" ~ "Land Trust",
+    owner_type == "M" ~ "Municipal",
+    owner_type == "P" ~ "Private for Profit", 
+    owner_type == "S" ~ "State", 
+    .default = owner_type))
+
+```
+
+## Treemap 
+
+This could probably made a bit prettier by formatting the legend.. 
+```{r}
+#| fig-height: 6
+#| fig-width: 8
+
+tree_map_df |> 
+ggplot(aes(
+  area = protected_acres, fill = layer, label =  owner_type,
+  subgroup = layer)) +
+  geom_treemap(color = "white", alpha = 0.85) +
+  geom_treemap_subgroup_border(color = "white") +
+  geom_treemap_text(
+    colour = "black",
+    reflow = T,
+    place = "bottom",
+    padding.x = grid::unit(1.5, "mm"),
+    padding.y = grid::unit(2, "mm"), size = 20) +
+  scale_fill_manual(values = soe_palette) +
+  labs(fill = "BioMap Core Type")
+
+## quick table 
+tree_map_df |> 
+  select(owner_type, layer, pct_of_biomap) |> 
+  pivot_wider(names_from = "layer", values_from = "pct_of_biomap") |> 
+  arrange(desc(forest)) |> 
+  gt()
+```
+
+
 
 ## Read in DCR Ecoregions
 Data accessed from [MA DCR Feature Layer](https://wellesley.maps.arcgis.com/home/item.html?id=bce82aad47394bf7a3add219f3c92297#overview)

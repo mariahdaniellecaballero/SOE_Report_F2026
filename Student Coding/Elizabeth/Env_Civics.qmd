@@ -4,7 +4,6 @@ format: html
 ---
 
 ## Installing Packages
-
 ```{r}
 install.packages("tidyverse")
 install.packages("gt")
@@ -14,6 +13,11 @@ install.packages("rmarkdown")
 install.packages("gt")
 install.packages("gtsummary")
 install.packages("usethis")
+install.packages("tigris")
+install.packages("countyhealthR")
+install.packages("dplyr")
+install.packages("googlesheets4")
+
 ```
 
 ```{r}
@@ -23,23 +27,103 @@ library(gt)
 library(gtsummary)
 library(readr)
 library(rmarkdown)
+library(tigris)
+library(countyhealthR)
+library(dplyr)
+library(googlesheets4)
 ```
 
 ## Github
 ```{r}
 library(usethis)
+#usethis::use_git_config(
+ # user.name  = "eh108-choropleth",
+ # user.email = "eh108@wellesley.edu")
 
-usethis::use_git_config(
-  user.name  = "eh108-choropleth",
-  user.email = "eh108@wellesley.edu"
-)
-```
-
-## Github token
-```{r}
 #usethis::create_github_token()
 
-install.packages("gitcreds")
-gitcreds::gitcreds_set()
+#install.packages("gitcreds")
+#gitcreds::gitcreds_set()
+```
+
+## CHR
+```{r}
+us_soc <- get_chrr_measure_data(
+  geography = "national",
+  measure = 140,
+  release_year = 2025
+) |> subset(select = -c(numerator,denominator,ci_low,ci_high)
+            )
+us_soc$fips <- paste(us_soc$state_fips,us_soc$county_fips)
+
+ne_soc <- get_chrr_measure_data(
+  geography = "state",
+  measure = 140,
+  release_year = 2025,
+) |> filter(state_fips %in%  c("25", "09", "23", "33", "50", "44")
+            )|> subset(select = -c(numerator,denominator,ci_low,ci_high))
+
+county_soc <- get_chrr_measure_data(
+  geography = "county",
+  measure = 140,
+  release_year = 2025
+) |> filter(state_fips == "25") |> subset(
+  select = -c(numerator,denominator,ci_low,ci_high))
+
+ne_soc$fips <- paste(ne_soc$state_fips,ne_soc$county_fips)
+county_soc$fips <- paste(county_soc$state_fips,county_soc$county_fips)
+
+scalar_soc <- bind_rows(county_soc, ne_soc, us_soc)
+
+```
+
+#Voter Turnout
+```{r}
+
+us_vot <- get_chrr_measure_data(
+  geography = "national",
+  measure = 177,
+  release_year = 2024
+) |> subset(select = -c(numerator,denominator,ci_low,ci_high)
+            )
+us_vot$fips <- paste(us_vot$state_fips,us_vot$county_fips)
+
+ne_vot <- get_chrr_measure_data(
+  geography = "state",
+  measure = 177,
+  release_year = 2024
+) |> filter(state_fips %in%  c("25", "09", "23", "33", "50", "44")
+            )|> subset(select = -c(numerator,denominator,ci_low,ci_high))
+
+county_vot <- get_chrr_measure_data(
+  geography = "county",
+  measure = 177,
+  release_year = 2024
+) |> filter(state_fips == "25") |> subset(
+  select = -c(numerator,denominator,ci_low,ci_high))
+
+ne_vot$fips <- paste(ne_vot$state_fips,ne_vot$county_fips)
+county_vot$fips <- paste(county_vot$state_fips,county_vot$county_fips)
+
+scalar_vot <- bind_rows(county_vot, ne_vot, us_vot)
+
+```
+
+#Registration Rate
+```{r}
+eavs <- read_csv('ec data/2024_EAVS_Tidy.csv')
+
+census <- read_csv('ec data/Census_Tidy.csv')
+
+#Dr. C, I need to combine census and eavs df by fips - they are both at county level, but census has geoID and eavs is county fips with leading 0s. 
+#After that, I need to calculate registration rate from each county (eavs A1a = registrants, census S2901 value = estimated total eligible voters in the county; would need to divide A1a/S2901) and then aggregate averages by all (US avg), among NE states (NE avg), among MA (MA avg) and then separate out counties
+
+```
+
+
+
+# Figure 1
+```{r}
+
 
 ```
