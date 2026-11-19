@@ -170,7 +170,7 @@ p_temp <- ggplot(temp, aes(year, value)) +
   scale_x_continuous(breaks = seq(1900, 2020, 20)) +
   scale_y_continuous(labels = label_number(accuracy = 1)) +
   labs(x = "Year", y = "Temperature (°F)") +
-  facet_wrap(~ "Average daily high") +
+  facet_wrap(~ "Changes in Average Daily High") +
   base_theme
 save_figure(p_temp, "temperature")
 
