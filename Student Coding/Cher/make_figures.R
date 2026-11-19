@@ -153,7 +153,7 @@ p_precip_sunshine <- ggplot() +
     expand = expansion(mult = 0)
   ) +
   labs(x = "Year", color = NULL) +
-  facet_wrap(~ "Precipitation and Sunshine") +
+  facet_wrap(~ "Changes in Precipitation and Sunshine") +
   base_theme +
   theme(
     axis.title.y.left = element_text(color = soe_colors[["forest"]]),
@@ -169,8 +169,8 @@ p_temp <- ggplot(temp, aes(year, value)) +
   geom_line(color = soe_colors[["red"]], linewidth = 0.85) +
   scale_x_continuous(breaks = seq(1900, 2020, 20)) +
   scale_y_continuous(labels = label_number(accuracy = 1)) +
-  labs(x = "Year", y = "Average daily high (°F)") +
-  facet_wrap(~ "Temperature") +
+  labs(x = "Year", y = "Temperature (°F)") +
+  facet_wrap(~ "Average daily high") +
   base_theme
 save_figure(p_temp, "temperature")
 
@@ -259,7 +259,7 @@ p_yale <- ggplot(
     y = "Respondents with belief (%)",
     fill = NULL
   ) +
-  facet_wrap(~ "Climate Change Beliefs") +
+  facet_wrap(~ "Climate Change Opinions") +
   base_theme +
   theme(panel.grid.major.y = element_blank())
 
