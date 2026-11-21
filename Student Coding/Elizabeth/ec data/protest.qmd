@@ -1,0 +1,84 @@
+---
+title: "protest"
+format: html
+---
+
+## Installing Packages
+```{r}
+install.packages("tidyverse")
+install.packages("gt")
+install.packages("gtsummary")
+install.packages("readr")
+install.packages("rmarkdown")
+install.packages("gt")
+install.packages("gtsummary")
+install.packages("usethis")
+install.packages("tigris")
+install.packages("countyhealthR")
+install.packages("dplyr")
+install.packages("googlesheets4")
+install.packages("stringr")
+
+
+```
+
+
+```{r}
+#| label: load packages
+library(tidyverse)
+library(gt)
+library(gtsummary)
+library(readr)
+library(rmarkdown)
+library(tigris)
+library(countyhealthR)
+library(dplyr)
+library(googlesheets4)
+library(stringr)
+
+```
+
+#Protest
+```{r}
+
+us_protest <- read_csv('ccc_compiled_20212024.csv') |> subset(
+  select = c(state, fips_code)) |> 
+  group_by(state) 
+
+us_pcount <- us_protest |> count(state, sort = TRUE)
+
+state_pop <- read_sheet("https://docs.google.com/spreadsheets/d/1QMbh8F_GFE7wGrPIhgh0LVQjNnyoFL3wAh8dPinaO5o/edit?usp=sharing")
+
+us_pcount <- inner_join(us_pcount, state_pop, by = "state"
+                          ) |> mutate(protest = (n/pop)*10000
+                                      ) 
+#protest colmn = number of protests per 10,000 people over course of four years
+
+ma_pcount <- filter(us_protest, state == 'MA'
+                    ) |> group_by(fips_code) |> count(fips_code, sort = TRUE)
+
+fips_pop <- get_chrr_measure_data(
+  geography = "county",
+  measure = 051,
+  release_year = 2024
+) |> filter(state_fips == "25") |> subset(
+  select = -c(numerator,denominator,ci_low,ci_high)) 
+
+fips_pop$fips_code <- paste(fips_pop$state_fips, fips_pop$county_fips) 
+
+fips_pop$fips_code <- stringr::str_replace_all(fips_pop$fips_code, "\\s+", "")
+
+ma_pcount <- inner_join(ma_pcount, fips_pop, by = "fips_code"
+                          ) |> mutate(protest = (n/raw_value)*10000
+                                      ) 
+#protest colmn = number of protests per 10,000 people over course of four years
+
+ma_pcount <- dplyr::select(ma_pcount, !c(n, state_fips, county_fips, raw_value))
+
+us_pcount <- dplyr::select(us_pcount, !c(n, pop))
+
+write.csv(ma_pcount, "ma_pcount.csv")
+write.csv(us_pcount, "us_pcount.csv")
+
+
+```

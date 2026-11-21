@@ -121,8 +121,10 @@ census <- read_csv('ec data/Census_Tidy.csv')
 
 ```
 
-
-
+#Protest
+```{r}
+#See protest.qmd file for protest data analysis and coding
+```
 # Figure 1
 ```{r}
 
