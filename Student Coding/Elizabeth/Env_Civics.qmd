@@ -36,14 +36,14 @@ library(googlesheets4)
 ## Github
 ```{r}
 library(usethis)
-#usethis::use_git_config(
- # user.name  = "eh108-choropleth",
- # user.email = "eh108@wellesley.edu")
+usethis::use_git_config(
+ user.name  = "eh108-choropleth",
+ user.email = "eh108@wellesley.edu")
 
-#usethis::create_github_token()
+usethis::create_github_token()
 
-#install.packages("gitcreds")
-#gitcreds::gitcreds_set()
+install.packages("gitcreds")
+gitcreds::gitcreds_set()
 ```
 
 ## CHR
