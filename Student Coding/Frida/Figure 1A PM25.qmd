@@ -1,0 +1,111 @@
+---
+title: "Figure 1A_PM25"
+format: html
+editor: visual
+---
+
+```{r Packages}
+library(arcgis)
+library(tidycensus) 
+library(tidyverse)
+library(sf)
+library(MexBrewer)
+library(mapview)
+library(crsuggest)
+library(units)
+library(terra)
+library(tidyterra)
+library(janitor)
+library(wesanderson)
+library(corrr)   
+library(tigris)
+library(gstat)
+library(terra)
+library(corrplot)
+library(readxl)
+library(gstat)
+library(tigris)
+
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+```
+
+##Figure 1A Change in Air Quality 2025 average vs 2015 averagae Nation Wide - PM2.5 (EPA AIR DATA PM2.5)
+
+```{r}
+
+
+##Palette (Diverging)
+pal <- c("#204683", "#608ED8", "white", "#DD5A54", "#AF2A23") 
+#dDATA SETUP AND CLEANUP 
+PM2.5Change <- read.csv("~/Documents/es_314/SOE_Report_F2026/Student Coding/Frida/Data/pm.25_perc.csv")
+
+class(PM2.5Change)
+
+
+PM2.5Change_sf <- st_as_sf(
+  PM2.5Change, 
+  coords = c("Site.Longitude", "Site.Latitude"), 
+  crs = 4326
+)
+
+# 2. Reproject to Massachusetts State Plane (6492)
+PM2.5Change_sf <- st_transform(PM2.5Change_sf, crs = 6492)
+
+
+```
+
+Prediction Grid
+
+```{r}
+# create prediction grid
+options(tigris_use_cache = TRUE)
+
+ma <- states(cb = TRUE, year = 2023) |>
+  subset(STUSPS == "MA")
+suggest_crs(ma)
+ma <- ma |> st_transform(6492)
+
+grid <- terra::rast(ma, nrows = 200, ncols = 200)
+
+xy <- terra::xyFromCell(grid, 1:ncell(grid)) |> as.data.frame()
+
+pred_grid <- xy |> 
+        st_as_sf( coords = c("x", "y"),
+        crs = st_crs(grid))
+
+# subset points that fall within 
+pred_grid <- pred_grid[ma, ]
+
+rm(xy)
+
+
+nrow(PM2.5Change_sf)
+st_crs(PM2.5Change_sf) == st_crs(ma)
+
+ma <- st_transform(ma, st_crs(PM2.5Change_sf))
+
+st_intersects(st_as_sfc(st_bbox(PM2.5Change_sf)), ma, sparse = FALSE)
+
+```
+
+#PM2.5 Figure
+
+```{r}
+
+ggplot() +
+  geom_spatraster(data = pred_idw, aes(fill = mean)) +
+scale_fill_gradientn(colors = pal, na.value = "transparent", name = "%Change") +
+  geom_sf(data = PM2.5Change_sf, aes(color = percentage_change),  shape = 21,       
+    color = "black",  # Outline color
+    size = 3,         # Point size
+    stroke = 0.5      # Outline thickness
+  ) + theme_minimal() +
+  theme(text = element_text(family = "Fraunces", size = 10,))
+
+
+
+```

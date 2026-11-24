@@ -1,0 +1,71 @@
+---
+title: "Figure 2 Lollypop"
+format: html
+editor: visual
+---
+
+```{r Packages}
+library(arcgis)
+library(tidycensus) 
+library(tidyverse)
+library(sf)
+library(MexBrewer)
+library(mapview)
+library(crsuggest)
+library(units)
+library(terra)
+library(tidyterra)
+library(janitor)
+library(wesanderson)
+library(corrr)   
+library(tigris)
+library(gstat)
+library(terra)
+library(corrplot)
+library(readxl)
+library(gstat)
+library(tigris)
+
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+
+```
+
+#Lollyplot Plot
+
+```{r}
+
+#Data from EJSCREEN
+
+df <- tibble(
+  variable = rep(c("% POC", "Life Exp", "Low Inc", "Diesel PM"), each = 3),
+  group = rep(c("Norfolk", "Massachussetts", "National"), times = 4),
+  value = c(-0.21, 0.18, 0.32, -0.39, 0, -0.04, -0.15, 0.7, 0.09, -0.34, 0.13, 0.37))
+
+pos <- position_dodge(width = 0.65)
+
+ggplot(df, aes(x = value, y = variable, color = group)) +
+  geom_linerange(
+    aes(xmin = 0, xmax = value),
+    position = pos,
+    linewidth = 0.9
+  ) +
+  geom_point(
+    aes(size = 3),
+    position = pos
+  ) +
+    scale_color_manual(values = c("#DD5A54", "#608ED8", "#737F2E")) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Relationship between PM 2.5 and Variables",
+    x = "Corr",
+    y = NULL,
+    color = "Group"
+  ) +
+  theme_minimal() +
+  theme(text = element_text(family = "Fraunces", size = 14,))
+
+```

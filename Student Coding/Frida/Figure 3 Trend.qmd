@@ -1,0 +1,146 @@
+---
+title: "Figure 3 Trend"
+format: html
+editor: visual
+---
+
+```{r Packages}
+library(arcgis)
+library(tidycensus) 
+library(tidyverse)
+library(sf)
+library(MexBrewer)
+library(mapview)
+library(crsuggest)
+library(units)
+library(terra)
+library(tidyterra)
+library(janitor)
+library(wesanderson)
+library(corrr)   
+library(tigris)
+library(gstat)
+library(terra)
+library(corrplot)
+library(readxl)
+library(gstat)
+library(tigris)
+library(sysfonts)
+library(showtext)
+
+soe_colors <- c(
+  red    = "#DD5A54",
+  blush  = "#EDBFB2",
+  orange = "#EC940C",
+  blue   = "#608ED8",
+  olive  = "#737F2E",
+  forest = "#283523"
+)
+soe_palette <- unname(soe_colors)
+
+
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+
+theme_soe <- function(base_size = 12) {
+  theme_minimal(base_size = base_size, base_family = "Manrope") +
+    theme(
+      text             = element_text(color = soe_colors["forest"]),
+      plot.title       = element_text(family = "Fraunces", face = "bold",
+                                      size = rel(1.4)),
+      plot.subtitle    = element_text(face = "italic", size = rel(1.1)),
+      axis.title       = element_text(face = "bold"),
+      legend.position  = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.border     = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.background = element_rect(color = soe_colors["forest"],
+                                      fill = NA, linewidth = 0.6),
+      strip.text       = element_text(family = "Fraunces", face = "bold",
+                                      color = soe_colors["forest"])
+    )
+}
+theme_set(theme_soe())
+```
+
+#National
+
+```{r}
+
+national_summary <- read.csv("~/Documents/es_314/SOE_Report_F2026/Student Coding/Frida/Data/national_daily.csv")
+
+national_summary$Date.Local <- ymd(national_summary$Date.Local)
+
+national_summary <- national_summary %>%
+  group_by(Date.Local) %>%
+  summarise(
+    nat_mean = mean(X1st.Max.Hour, na.rm = TRUE),
+    nat_low  = quantile(X1st.Max.Hour, 0.10, na.rm = TRUE),
+    nat_high = quantile(X1st.Max.Hour, 0.90, na.rm = TRUE), 
+    .groups  = "drop"
+  )
+
+
+```
+
+#Norfolk
+
+```{r}
+norfolk <- read.csv("~/Documents/es_314/SOE_Report_F2026/Student Coding/Frida/Data/Norfolk_daily.csv")
+
+norfolk$Date <- mdy(norfolk$Date)
+
+```
+
+#Clean Data
+
+```{r}
+
+national_weekly <- national_summary %>%
+  mutate(Week = floor_date(Date.Local, unit = "week")) %>%
+  group_by(Week) %>%
+  summarise(
+    nat_low = mean(nat_low, na.rm = TRUE),
+    nat_high = mean(nat_high, na.rm = TRUE),
+    nat_mean = mean(nat_mean, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 2. Smooth Norfolk data into weekly averages
+norfolk_weekly <- norfolk %>%
+  mutate(Week = floor_date(Date, unit = "week")) %>%
+  group_by(Week) %>%
+  summarise(
+    no2_mean = mean(Daily.Max.1.hour.NO2.Concentration, na.rm = TRUE),
+    .groups = "drop")
+
+```
+
+```{r}
+
+ggplot(national_summary, aes(x = Date.Local)) +
+  geom_ribbon(
+    aes(ymin = nat_low, ymax = nat_high, fill = "National Range (10th–90th %ile)"),
+    alpha = 0.25
+  ) +
+geom_line(
+    data = norfolk_weekly,aes(x = Week, y = no2_mean,color = "Norfolk County Mean"),
+    linewidth = 0.9
+  ) +
+  # Formatting and Legends
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  scale_fill_manual(name = "", values = c("National Range (10th–90th %ile)" = "#608ED8")) +
+  scale_color_manual(
+    name = "",
+    values = c("Norfolk County Mean" = "#DD5A54")
+  ) +
+  labs(
+    title = "2025 Weekly Air Quality: Norfolk County vs. National",
+    subtitle = "Weekly Mean NO2 concentration (µg/m³)",
+    x = "Month",
+    y = "NO2"
+  )
+```
