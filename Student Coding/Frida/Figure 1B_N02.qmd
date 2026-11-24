@@ -1,0 +1,119 @@
+---
+title: "Figure 1_NO2"
+format: html
+editor: visual
+---
+
+```{r Packages}
+library(arcgis)
+library(tidycensus) 
+library(tidyverse)
+library(sf)
+library(MexBrewer)
+library(mapview)
+library(crsuggest)
+library(units)
+library(terra)
+library(tidyterra)
+library(janitor)
+library(wesanderson)
+library(corrr)   
+library(tigris)
+library(gstat)
+library(terra)
+library(corrplot)
+library(readxl)
+library(gstat)
+library(tigris)
+
+font_add_google("Fraunces", "Fraunces")
+font_add_google("Manrope", "Manrope")
+showtext_auto()
+showtext_opts(dpi = 300)
+
+```
+
+
+##Figure 1B Change in Air Quality 2025 average vs 2015 averagae Nation Wide - NO2 (EPA AIR DATA NO2)
+```{r}
+
+##Palette (Sequencial)
+pal2 <- c("white", "#ECA19D","#DD5A54", "#AF2A23")
+
+#DATA SETUP AND CLEANUP 
+NO2Change <- read.csv("~/Documents/es_314/SOE_Report_F2026/Student Coding/Frida/Data/NO2_Percent_Change.csv")
+class(NO2Change)
+
+NO2Change_sf <- st_as_sf(
+  NO2Change, 
+  coords = c("Site.Longitude", "Site.Latitude"), 
+  crs = 4326
+)
+
+# 2. Reproject to Massachusetts State Plane (6492)
+NO2Change_sf <- st_transform(NO2Change_sf, crs = 6492)
+
+
+NO2Change_sf$NO2.Percentage.Change <- as.numeric(gsub("%", "", NO2Change_sf$NO2.Percentage.Change))
+
+
+
+```
+
+
+ Prediction Grid
+```{r}
+# create prediction grid
+options(tigris_use_cache = TRUE)
+
+ma <- states(cb = TRUE, year = 2023) |>
+  subset(STUSPS == "MA")
+suggest_crs(ma)
+ma <- ma |> st_transform(6492)
+
+grid <- terra::rast(ma, nrows = 200, ncols = 200)
+
+xy <- terra::xyFromCell(grid, 1:ncell(grid)) |> as.data.frame()
+
+pred_grid <- xy |> 
+        st_as_sf( coords = c("x", "y"),
+        crs = st_crs(grid))
+
+# subset points that fall within 
+pred_grid <- pred_grid[ma, ]
+
+rm(xy)
+
+```
+ 
+Plotting IDW
+```{r}
+
+
+idw_model2 <- gstat(formula = NO2.Percentage.Change~ 1, 
+             locations = NO2Change_sf,
+             nmax = nrow(NO2Change_sf), # use all the wells locations
+             set = list(idp = 2)) # beta = 2 
+
+# Prediction Grid
+ resp_idw2 <- predict(idw_model2, pred_grid) |>
+  st_as_sf() |>
+  mutate(pred = var1.pred) |> 
+  vect()
+
+pred_idw2 <- terra::rasterize(resp_idw2, grid, field = "pred", fun = "mean")
+
+ggplot() +
+  geom_spatraster(data = pred_idw2, aes(fill = mean)) +
+  scale_fill_gradientn(colors = pal2, na.value = "transparent", name = "%Change") +
+  theme_minimal() + geom_sf(data = NO2Change_sf, aes(color = NO2.Percentage.Change),  shape = 21,       
+    color = "black",  # Outline color
+    size = 3,         # Point size
+    stroke = 0.5      # Outline thickness
+  ) + theme_minimal() + 
+  theme(text = element_text(family = "Fraunces", size = 10,))
+
+
+
+```
+
