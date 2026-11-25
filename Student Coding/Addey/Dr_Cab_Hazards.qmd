@@ -3,7 +3,9 @@ title: "Dr_Cab_NRI"
 format: html
 editor: visual
 ---
+
 ## Global Aesthetic Options
+
 ```{r}
 library(sf)
 library(arcgis)
@@ -53,8 +55,8 @@ theme_set(theme_soe())
 
 ```
 
+## Read and tidy data
 
-## Read and tidy data 
 ```{r}
 setwd("~/Google Drive/My Drive/Teaching/ES-314/Class Research/data")
 
@@ -68,9 +70,10 @@ nri <- read_csv("NRI/NRI_Table_CensusTracts.csv") |>
     hrcn_pct_rank = cume_dist(hrcn_riskv) * 100)
 ```
 
-
 ## 1. Average NRI scores
+
 Calculate average percentile rank risk score for Norfolk, and MA
+
 ```{r}
 # MA- 48th percentile in NE
 nri |> filter(stateabbrv == "MA") |> select(risk_pct_rank) |> summary()
@@ -80,9 +83,10 @@ nri |> filter(stateabbrv == "MA") |> select(risk_pct_rank) |> summary()
 nri |> filter(stateabbrv == "MA" & county == "Norfolk") |> select(risk_pct_rank) |> summary()
 ```
 
-
 ## 2. Avg. Hurricane Risk Index
+
 Calculate average NRI score for Norfolk, and MA
+
 ```{r}
 # MA- 52nd percentile in NE
 nri |> filter(stateabbrv == "MA") |> select(hrcn_pct_rank) |> summary()
@@ -93,7 +97,9 @@ nri |> filter(stateabbrv == "MA" & county == "Norfolk") |> select(hrcn_pct_rank)
 ```
 
 ## 3. Avg. Heat Risk Index
+
 Calculate average NRI score for Norfolk, and MA
+
 ```{r}
 # MA- 53rd percentile in NE
 nri |> filter(stateabbrv == "MA") |> select(hwav_pct_rank) |> summary()
@@ -104,6 +110,7 @@ nri |> filter(stateabbrv == "MA" & county == "Norfolk") |> select(hwav_pct_rank)
 ```
 
 ## 4. Combined Bar graph
+
 ```{r}
 score_cols <- c("risk_pct_rank", "hwav_pct_rank", "hrcn_pct_rank")
 
@@ -158,13 +165,12 @@ ggplot(bar_df, aes(x = stateabbrv, y = avg_pct_rank, fill = metric)) +
 rm(by_county, by_state, bar_df, score_cols)
 ```
 
+## 5. Map of Avg Projected Heat by cities/towns + county over it ?
 
-## 5. Map of Avg Projected Heat by cities/towns + county over it ? 
-[MAPC towns](https://share-open-data-metroboston.hub.arcgis.com/datasets/6f2c0c8e89f541a8bd8e5611da058bea_0/explore)
-[Background info on towns](https://www.mass.gov/info-details/massgis-data-2020-us-census-towns)
-[NASA heat data](https://www.earthdata.nasa.gov/data/catalog/sedac-ciesin-sedac-crv-uscrpc-2040-2049-1.00#overview), extreme heat is defined as number of events exceeding the 97.5th percentile of daily maximum baseline temperature for three consecutive days in the 2040s. 
+[MAPC towns](https://share-open-data-metroboston.hub.arcgis.com/datasets/6f2c0c8e89f541a8bd8e5611da058bea_0/explore) [Background info on towns](https://www.mass.gov/info-details/massgis-data-2020-us-census-towns) [NASA heat data](https://www.earthdata.nasa.gov/data/catalog/sedac-ciesin-sedac-crv-uscrpc-2040-2049-1.00#overview), extreme heat is defined as number of events exceeding the 97.5th percentile of daily maximum baseline temperature for three consecutive days in the 2040s.
 
-Notes: I feel like the Norfolk map could be better, maybe add stations and lighten the lines? 
+Notes: I feel like the Norfolk map could be better, maybe add stations and lighten the lines?
+
 ```{r}
 setwd("~/Google Drive/My Drive/Teaching/ES-314/Class Research/data") 
 # list Norfolk towns 
@@ -275,10 +281,10 @@ p3 <- norfolk_map + ggtitle("Norfolk County") + strip_title
 #   nri, stations, storms, strip_title, p1, p2, p3, ma_map, ne_map, url)
 ```
 
+## 6. Storm Events & secondary risks
 
-## 6. Storm Events & secondary risks 
-NOAA_Norfolk_storm_events_1950-2025, filtered for heat, wind, rain, flood and snow
-Power outages? Eagle-I percentile of power outages for each geography and flood risk index percentile 
+NOAA_Norfolk_storm_events_1950-2025, filtered for heat, wind, rain, flood and snow Power outages? Eagle-I percentile of power outages for each geography and flood risk index percentile
+
 ```{r}
 storms <- read_csv("~/Google Drive/My Drive/Teaching/ES-314/Class Research/Climate - Cher/NOAA_norfolk_storm_events_1950_2025.csv")
 
@@ -325,9 +331,7 @@ ggplot(county_daily_outages, aes(x = start_date, y = customers_out)) +
 rm(county_daily_outages, outages, storms)
 ```
 
-
-
-## 7. Heat index & secondary risks 
+## 7. Heat index & secondary risks
 
 ```{r}
 ne_states <- c("CT", "ME", "MA", "NH", "RI", "VT")
@@ -447,6 +451,4 @@ dot_df |>
 #rm(tract_summary, places, raw, vars)
 ```
 
-
-Rank most prevalent vulnerable community at each geography, bivariate map of heat
-index and outcome 
+Rank most prevalent vulnerable community at each geography, bivariate map of heat index and outcome
