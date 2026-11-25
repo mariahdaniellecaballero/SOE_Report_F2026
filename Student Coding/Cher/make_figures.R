@@ -893,12 +893,17 @@ make_coastal_map <- function() {
     tolower(town_label_data$municipality) == "quincy"
   ] <- town_label_data$label_y[
     tolower(town_label_data$municipality) == "quincy"
-  ] - 950
+  ] - 1000
+  town_label_data$label_x[
+    tolower(town_label_data$municipality) == "quincy"
+] <- town_label_data$label_x[
+    tolower(town_label_data$municipality) == "quincy"
+] - 1500
   town_label_data$label_y[
     tolower(town_label_data$municipality) == "weymouth"
   ] <- town_label_data$label_y[
     tolower(town_label_data$municipality) == "weymouth"
-  ] - 750
+  ] - 950
 
   land_hatch_key <- function(data, params, size) {
     grid::grobTree(
