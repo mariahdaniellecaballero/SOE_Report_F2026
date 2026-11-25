@@ -47,36 +47,7 @@ gitcreds::gitcreds_set()
 
 ```
 
-## CHR
-```{r}
-us_soc <- get_chrr_measure_data(
-  geography = "national",
-  measure = 140,
-  release_year = 2025
-) |> subset(select = -c(numerator,denominator,ci_low,ci_high)
-            )
-us_soc$fips <- paste(us_soc$state_fips,us_soc$county_fips)
-
-ne_soc <- get_chrr_measure_data(
-  geography = "state",
-  measure = 140,
-  release_year = 2025,
-) |> filter(state_fips %in%  c("25", "09", "23", "33", "50", "44")
-            )|> subset(select = -c(numerator,denominator,ci_low,ci_high))
-
-county_soc <- get_chrr_measure_data(
-  geography = "county",
-  measure = 140,
-  release_year = 2025
-) |> filter(state_fips == "25") |> subset(
-  select = -c(numerator,denominator,ci_low,ci_high))
-
-ne_soc$fips <- paste(ne_soc$state_fips,ne_soc$county_fips)
-county_soc$fips <- paste(county_soc$state_fips,county_soc$county_fips)
-
-scalar_soc <- bind_rows(county_soc, ne_soc, us_soc)
-
-```
+##Data Tidying Figure 1
 
 #Voter Turnout
 ```{r}
@@ -125,8 +96,26 @@ census <- read_csv('ec data/Census_Tidy.csv')
 ```{r}
 #See protest.qmd file for protest data analysis and coding
 ```
+
 # Figure 1
 ```{r}
-
+#civic engagement
 
 ```
+
+# Figure 2
+```{r}
+#civic access
+```
+
+# Figure 3
+```{r}
+#inequities
+```
+
+# Figure 5
+```{r}
+#load norfolk town, map w color by category and popn bubble
+```
+
+
