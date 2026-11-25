@@ -17,7 +17,7 @@ install.packages("tigris")
 install.packages("countyhealthR")
 install.packages("dplyr")
 install.packages("googlesheets4")
-
+install.packages("devtools")
 ```
 
 ```{r}
@@ -31,19 +31,22 @@ library(tigris)
 library(countyhealthR)
 library(dplyr)
 library(googlesheets4)
+library(devtools) 
 ```
 
 ## Github
 ```{r}
 library(usethis)
 usethis::use_git_config(
- user.name  = "eh108-choropleth",
- user.email = "eh108@wellesley.edu")
+  user.name  = "eh108-choropleth",
+  user.email = "eh108@wellesley.edu")
 
 usethis::create_github_token()
 
 install.packages("gitcreds")
 gitcreds::gitcreds_set()
+
+devtools::install_github("countyhealthrankings/countyhealthR")
 
 ```
 
@@ -53,11 +56,13 @@ gitcreds::gitcreds_set()
 ```{r}
 
 us_vot <- get_chrr_measure_data(
-  geography = "national",
+  geography = "county",
   measure = 177,
-  release_year = 2024
-) |> subset(select = -c(numerator,denominator,ci_low,ci_high)
-            )
+  release_year = 2024)
+
+us_vot <- subset(select = -c(numerator,denominator,ci_low,ci_high))
+            
+
 us_vot$fips <- paste(us_vot$state_fips,us_vot$county_fips)
 
 ne_vot <- get_chrr_measure_data(
@@ -107,6 +112,8 @@ census <- read_csv('ec data/Census_Tidy.csv')
 ```{r}
 #civic access
 ```
+
+
 
 # Figure 3
 ```{r}
