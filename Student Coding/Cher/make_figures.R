@@ -36,6 +36,7 @@ soe_colors <- c(
   orange = "#EC940C",
   blue = "#608ED8",
   olive = "#737F2E",
+  hunter = "#415639",
   forest = "#283523"
 )
 soe_palette <- unname(soe_colors)
@@ -234,7 +235,7 @@ yale <- read_csv(
   )
 
 regional_colors <- c(
-  "Norfolk County" = soe_colors[["forest"]],
+  "Norfolk County" = soe_colors[["hunter"]],
   "Massachusetts" = soe_colors[["olive"]],
   "United States" = soe_colors[["orange"]]
 )
@@ -590,7 +591,7 @@ for (gas_name in levels(emissions$gas)) {
 }
 
 emission_colors <- c(
-  "Norfolk County" = soe_colors[["forest"]],
+  "Norfolk County" = soe_colors[["hunter"]],
   "Massachusetts" = soe_colors[["olive"]],
   "New England" = soe_colors[["orange"]]
 )
@@ -907,7 +908,7 @@ make_coastal_map <- function() {
         y0 = grid::unit(0.12, "npc"),
         x1 = grid::unit(0.82, "npc"),
         y1 = grid::unit(0.88, "npc"),
-        gp = grid::gpar(col = "#bfbfbf", lwd = 0.7)
+        gp = grid::gpar(col = "#8e898c", lwd = 0.7)
       )
     )
   }
@@ -917,12 +918,12 @@ make_coastal_map <- function() {
                      color = NA, key_glyph = land_hatch_key)
   if (!is.null(context_hatching)) {
     map <- map + ggplot2::geom_sf(
-      data = context_hatching, color = "#bfbfbf",
+      data = context_hatching, color = "#5D7A52",
       linewidth = 0.055, show.legend = FALSE
     )
   }
   map <- map +
-    ggplot2::geom_sf(data = highlighted_land, fill = "#F4EEDF", color = NA)
+    ggplot2::geom_sf(data = highlighted_land, fill = "#5D7A52", color = NA)
   if (nrow(extra2050) && !all(sf::st_is_empty(extra2050))) {
     map <- map + ggplot2::geom_sf(
       data = extra2050, ggplot2::aes(fill = "2050"),
@@ -947,12 +948,12 @@ make_coastal_map <- function() {
   inland_water_areas <- clip(inland_water_areas, highlighted_land)
   if (nrow(inland_water_areas)) {
     map <- map + ggplot2::geom_sf(
-      data = inland_water_areas, fill = "#F6FAFD", color = NA,
+      data = inland_water_areas, fill = "#8CADE3", color = NA,
       show.legend = FALSE
     )
   }
   map <- map + ggplot2::geom_sf(
-    data = ocean_area, ggplot2::aes(fill = "Ocean"), color = NA
+    data = ocean_area, ggplot2::aes(fill = "Ocean & Inland Waters"), color = NA
   )
   map <- map + ggplot2::geom_sf(
     data = current_coastline, color = NA
@@ -960,7 +961,7 @@ make_coastal_map <- function() {
   if (!is.null(municipal_dividers)) {
     map <- map + ggplot2::geom_sf(
       data = municipal_dividers,
-      color = "#D6D1C7", linewidth = 0.14,
+      color = "#CBC5B9", linewidth = 0.14,
       show.legend = FALSE
     )
   }
@@ -968,13 +969,13 @@ make_coastal_map <- function() {
     ggplot2::geom_text(data = town_label_data,
                        ggplot2::aes(x = label_x, y = label_y,
                                     label = municipality),
-                       size = 2.8, color = "black", check_overlap = TRUE,
+                       size = 2.8, color = "white", check_overlap = TRUE,
                        family = font_family) +
     ggplot2::scale_fill_manual(
-      values = c("Ocean" = "#F6FAFD", "Non-County" = "#eaeaea",
-                 "1996" = "#EAF3F8",
-                 "2030" = "#DCEBF3",
-                 "2050" = "#AFC9D9"),
+      values = c("Ocean & Inland Waters" = "#8CADE3", "Non-County" = "#B2A9AE",
+                 "1996" = soe_colors[["blush"]],
+                 "2030" = "#F5AB3D",
+                 "2050" = soe_colors[["red"]]),
       breaks = c("Non-County", "1996",
                  "2030", "2050"),
       drop = FALSE
