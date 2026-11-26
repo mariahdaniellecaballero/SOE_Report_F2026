@@ -13,6 +13,8 @@ library(janitor)
 library(treemapify)
 library(sysfonts)
 library(showtext)
+library(gt)
+library(webshot2)
 
 # colors 
 soe_colors <- c(
@@ -160,6 +162,7 @@ This could probably made a bit prettier by formatting the legend..
 #| fig-width: 8
 
 tree_map_df |> 
+  
 ggplot(aes(
   area = protected_acres, fill = layer, label =  owner_type,
   subgroup = layer)) +
@@ -182,6 +185,86 @@ tree_map_df |>
   gt()
 ```
 
+## Norfolk County Treemap
+
+```{r}
+# 1. Fetch Norfolk County (FIPS 25021) via Census TIGERweb ArcGIS REST service
+county_url <- "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1"
+county_layer <- arc_open(county_url)
+
+norfolk <- arc_select(
+  county_layer,
+  where = "STATE = '25' AND COUNTY = '021'"
+) |>
+  st_transform(st_crs(biomap_diss)) |> # reproject from WGS84 to MassGIS NAD83 Mainland (EPSG:26986)
+  st_make_valid()
+
+# 2. CLIPPING STEP: Clip both dissolved statewide layers to Norfolk County
+biomap_norfolk <- st_intersection(biomap_diss, norfolk) |>
+  st_make_valid()
+
+protect_norfolk <- st_intersection(protect_diss, norfolk) |>
+  st_make_valid()
+
+# 3. Recalculate Norfolk-specific BioMap denominator (in acres)
+biomap_denom_norfolk <- biomap_norfolk |>
+  mutate(biomap_acres = as.numeric(st_area(geometry)) / 4046.856) |>
+  st_drop_geometry() |>
+  select(layer, biomap_acres)
+
+# 4. Intersect clipped BioMap and clipped Protected Lands
+protected_by_owner_norfolk <- st_intersection(biomap_norfolk, protect_norfolk) |>
+  mutate(protected_acres = as.numeric(st_area(geometry)) / 4046.856) |>
+  st_drop_geometry() |>
+  select(layer, owner_type, protected_acres)
+
+# 5. Prepare Norfolk treemap dataframe
+tree_map_norfolk_df <- protected_by_owner_norfolk |>
+  left_join(biomap_denom_norfolk, by = "layer") |>
+  mutate(
+    pct_of_biomap = 100 * protected_acres / biomap_acres,
+    owner_type = case_when(
+      owner_type == "F" ~ "Federal",
+      owner_type == "L" ~ "Land Trust",
+      owner_type == "M" ~ "Municipal",
+      owner_type == "P" ~ "Private for Profit",
+      owner_type == "S" ~ "State",
+      .default = owner_type
+    )
+  )
+
+# 6. Plot Norfolk County Treemap
+tree_map_norfolk_df |>
+  ggplot(aes(
+    area = protected_acres,
+    fill = layer,
+    label = owner_type,
+    subgroup = layer
+  )) +
+  geom_treemap(color = "white", alpha = 0.85) +
+  geom_treemap_subgroup_border(color = "white") +
+  geom_treemap_text(
+    colour = "black",
+    reflow = TRUE,
+    place = "bottom",
+    padding.x = grid::unit(1.5, "mm"),
+    padding.y = grid::unit(2, "mm"),
+    size = 20
+  ) +
+  scale_fill_manual(values = soe_palette) +
+  labs(
+    title = "Protected BioMap Core Habitat in Norfolk County, MA",
+    fill = "BioMap Core Type"
+  )
+
+# 7. Norfolk County summary table
+tree_map_norfolk_df |>
+  select(owner_type, layer, pct_of_biomap) |>
+  pivot_wider(names_from = "layer", values_from = "pct_of_biomap") |>
+  arrange(desc(forest)) |>
+  gt()
+  
+```
 
 
 ## Read in DCR Ecoregions
@@ -233,3 +316,104 @@ bio_by_eco |>
 ```
 Note-- can likely afford to add correct font, remove background, and add legend 
 and north arrow. 
+
+##saving images
+```{r}
+
+p_treemap_state <- tree_map_df |>
+  ggplot(aes(
+    area = protected_acres,
+    fill = layer,
+    label = owner_type,
+    subgroup = layer
+  )) +
+  geom_treemap(color = "white", alpha = 0.85) +
+  geom_treemap_subgroup_border(color = "white") +
+  geom_treemap_text(
+    colour = "black",
+    reflow = TRUE,
+    place = "bottom",
+    padding.x = grid::unit(1.5, "mm"),
+    padding.y = grid::unit(2, "mm"),
+    size = 20
+  ) +
+  scale_fill_manual(values = soe_palette) +
+  labs(
+    title = "Protected BioMap Core Habitat in Massachusetts",
+    fill = "BioMap Core Type"
+  )
+
+gt_table_state <- tree_map_df |>
+  select(owner_type, layer, pct_of_biomap) |>
+  pivot_wider(names_from = "layer", values_from = "pct_of_biomap") |>
+  arrange(desc(forest)) |>
+  gt()
+
+# Save Statewide Outputs (300 DPI matches your showtext_opts(dpi = 300))
+ggsave(
+  filename = "biomap_treemap_statewide.png",
+  plot = p_treemap_state,
+  width = 8,
+  height = 6,
+  units = "in",
+  dpi = 300,
+  bg = "white"
+)
+
+gtsave(
+  data = gt_table_state,
+  filename = "biomap_table_statewide.png",
+  zoom = 3 # increases pixel density (~300 DPI equivalent) for sharp text
+)
+
+# ---------------------------------------------------------
+# 2. NORFOLK COUNTY TREEMAP & TABLE
+# ---------------------------------------------------------
+p_treemap_norfolk <- tree_map_norfolk_df |>
+  ggplot(aes(
+    area = protected_acres,
+    fill = layer,
+    label = owner_type,
+    subgroup = layer
+  )) +
+  geom_treemap(color = "white", alpha = 0.85) +
+  geom_treemap_subgroup_border(color = "white") +
+  geom_treemap_text(
+    colour = "black",
+    reflow = TRUE,
+    place = "bottom",
+    padding.x = grid::unit(1.5, "mm"),
+    padding.y = grid::unit(2, "mm"),
+    size = 20
+  ) +
+  scale_fill_manual(values = soe_palette) +
+  labs(
+    title = "Protected BioMap Core Habitat in Norfolk County, MA",
+    fill = "BioMap Core Type"
+  )
+
+gt_table_norfolk <- tree_map_norfolk_df |>
+  select(owner_type, layer, pct_of_biomap) |>
+  pivot_wider(names_from = "layer", values_from = "pct_of_biomap") |>
+  arrange(desc(forest)) |>
+  gt()
+
+# Save Norfolk County Outputs
+ggsave(
+  filename = "biomap_treemap_norfolk.png",
+  plot = p_treemap_norfolk,
+  width = 8,
+  height = 6,
+  units = "in",
+  dpi = 300,
+  bg = "white"
+)
+
+gtsave(
+  data = gt_table_norfolk,
+  filename = "biomap_table_norfolk.png",
+  zoom = 3
+)
+
+
+```
