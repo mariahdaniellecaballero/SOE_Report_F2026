@@ -182,6 +182,8 @@ county_soc$state_fips <- NULL
 scalar_soc <- bind_rows(county_soc, ne_soc, us_soc_avg)
 
 scalar_soc$fips <- stringr::str_replace_all(scalar_soc$fips, "\\s+", "")
+scalar_soc <- scalar_soc %>% rename_at('raw_value', ~'Social Associations')
+
 
 ```
 
@@ -192,7 +194,8 @@ us_lr <- read_csv('ec data/LiteracyRates_Nation.csv') |> filter(grpName == 'all'
 us_lr <- us_lr %>% rename_at('Country', ~'Geo')
 
 
-ne_lr <- read_csv('ec data/LiteracyRates - State.csv') |> filter(grpName == 'all') |> subset(select = c(State,FIPS_code,Lit_A)) |> filter(FIPS_code %in% c("25", "09", "23", "33", "50", "44"))
+ne_lr <- read_csv('ec data/LiteracyRates - State (1).csv') |> filter(grpName == 'all') |> subset(select = c(State,FIPS_code,Lit_A)) |> filter(FIPS_code %in% c("25", "09", "23", "33", "50", "44"))
+#dr. c
                 
   #("Massachusetts","Connecticut","Maine","New Hampshire","Vermont","Rhode Island"))
 
@@ -203,11 +206,54 @@ county_lr <- county_lr %>% rename_at('County', ~'Geo')
 
 
 scalar_lr <- bind_rows(county_lr, ne_lr, us_lr)
+scalar_lr$FIPS_code <- NULL
 ```
 
 #Library Visits and Broadband
 ```{r}
 county_lvbb <- read_csv('ec data/CivicIndex.csv') |> subset(select = c('Abbr','County','Percent of households with broadband','Library visits per 10,000 population'))
+
+us_lvbb_avg <- data.frame(
+  Geo = c("United States"),
+  bb = c(mean(county_lvbb$'Percent of households with broadband', na.rm = TRUE)),
+  lv = c(mean(county_lvbb$'Library visits per 10,000 population', na.rm = TRUE)))
+  
+ne_lvbb <- county_lvbb |> filter(Abbr %in%  c("MA","CT","ME","NH","VT","RI"))
+ne_lvbb <- ne_lvbb %>% rename_at('Percent of households with broadband', ~'bb')
+ne_lvbb <- ne_lvbb %>% rename_at('Library visits per 10,000 population', ~'lv')
+
+ne_lvbb_avg <- data.frame(
+  Geo = c("MA","CT","ME","NH","VT","RI"),
+  bb = c((mean(ne_lvbb$bb[ne_lvbb$Abbr == 'MA'], na.rm = TRUE)),(mean(ne_lvbb$bb[ne_lvbb$Abbr == 'CT'], na.rm = TRUE)),(mean(ne_lvbb$bb[ne_lvbb$Abbr == 'ME'], na.rm = TRUE)),(mean(ne_lvbb$bb[ne_lvbb$Abbr == 'NH'], na.rm = TRUE)),(mean(ne_lvbb$bb[ne_lvbb$Abbr == 'VT'], na.rm = TRUE)),(mean(ne_lvbb$bb[ne_lvbb$Abbr == 'RI'], na.rm = TRUE))),
+  lv = c((mean(ne_lvbb$lv[ne_lvbb$Abbr == 'MA'], na.rm = TRUE)),(mean(ne_lvbb$lv[ne_lvbb$Abbr == 'CT'], na.rm = TRUE)),(mean(ne_lvbb$lv[ne_lvbb$Abbr == 'ME'], na.rm = TRUE)),(mean(ne_lvbb$lv[ne_lvbb$Abbr == 'NH'], na.rm = TRUE)),(mean(ne_lvbb$lv[ne_lvbb$Abbr == 'VT'], na.rm = TRUE)),(mean(ne_lvbb$lv[ne_lvbb$Abbr == 'RI'], na.rm = TRUE))))
+
+macty_lvbb <- county_lvbb |> filter(Abbr %in%  c("MA")) 
+macty_lvbb <- macty_lvbb %>% rename_at('County', ~'Geo')
+macty_lvbb <- macty_lvbb %>% rename_at('Percent of households with broadband', ~'bb')
+macty_lvbb <- macty_lvbb %>% rename_at('Library visits per 10,000 population', ~'lv')
+
+scalar_lvbb <- bind_rows(macty_lvbb, ne_lvbb_avg, us_lvbb_avg)
+scalar_lvbb$Abbr <- NULL 
+
+```
+
+
+#Local News
+```{r}
+scalar_ln <- read_sheet('https://docs.google.com/spreadsheets/d/1Xh72Rks4HVnRgbuBJMCQCfX1JgeOL9Cm8nFpEUDYRKc/edit?gid=0#gid=0')
+
+#Source: 2026,https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/2026/
+
+```
+
+#Visual
+```{r}
+civa <- scalar_ln |> inner_join((scalar_lr),by = join_by(Geo))
+civa <- civa |> inner_join((scalar_lvbb),by = join_by(Geo))
+civa <- civa |> inner_join((scalar_soc),by = join_by(Geo))
+
+
+
 
 
 ```
