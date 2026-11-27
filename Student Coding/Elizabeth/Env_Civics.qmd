@@ -19,6 +19,7 @@ install.packages("dplyr")
 install.packages("googlesheets4")
 install.packages("devtools")
 install.packages("totalcensus")
+install.packages("stringr")
 ```
 
 ```{r}
@@ -34,6 +35,7 @@ library(dplyr)
 library(googlesheets4)
 library(devtools) 
 library(totalcensus)
+library(stringr)
 ```
 
 ## Github
@@ -109,17 +111,18 @@ scalar_vot$county_fips <- NULL
 ```{r}
 eavs <- read_csv('ec data/2024eavs.csv') |> subset(select = c(FIPSCode,State_Abbr,A1a))
 #eavs <- convert_fips_to_names(c(eavs$FIPSCode), states = c(eavs$State_Abbr), geo_header = "COUNTY")
+eavs$FIPSCode <- as.numeric(eavs$FIPSCode)
+
+eavs$FIPSCode <- str_pad(eavs$FIPSCode, 10, pad = "0")
 
 eavs <- eavs %>%
               separate(FIPSCode, into = c("FIPS_code", "Subdiv"), sep = 5)
 
 eavs_c <- summarise(eavs, regs = sum(A1a), .by = FIPS_code)
 
-eavs <- merge(eavs, eavs_c, by = 'FIPS_code')
-
 popn <- read_csv('ec data/LiteracyRates - County.csv') |> subset.data.frame(select = c(grpName,FIPS_code, POP, County), na.rm = TRUE) |> filter(grpName %in%  c('all')) 
 popn$grpName <- NULL 
-
+popn$FIPS_code <- str_pad(popn$FIPS_code, 5, pad = "0")
 
 rr <- merge(eavs_c, popn, by = "FIPS_code")
 
@@ -130,10 +133,13 @@ rr <- rr %>%
 #eavs <- convert_fips_to_names(c(eavs$FIPSCode), states = c(eavs$State_Abbr), geo_header = "COUNTY")
 rr$rr <- as.numeric(rr$rr)
 
-ne_rr <- rr |> filter(State %in%  c("25", "9", "23", "33", "50", "44"))
+ne_rr <- rr |> filter(State %in%  c("25", "09", "23", "33", "50", "44"))
 
 ne_rr <- summarise(ne_rr, rr_avg = mean(rr), .by = State)
 ne_rr$State <- convert_fips_to_names(c("25", "09", "23", "33", "50", "44"), geo_header = "STATE")
+ne_rr <- ne_rr %>% rename_at('State', ~'Geo')
+ne_rr <- ne_rr %>% rename_at('rr_avg', ~'rr')
+
 
 county_rr <- rr |> filter(State %in%  c("25")) |> filter(County %in%  c("001", "003", "005", "007", "009", "011", "013","015","017","019","021","023","025","027"))
 county_rr$County <- convert_fips_to_names(c("001", "003", "005", "007", "009", "011", "013","015","017","019","021","023","025","027"), states = c("MA"), geo_header = "COUNTY")
@@ -142,22 +148,16 @@ county_rr <- county_rr %>% rename_at('Geo', ~'FIPS_code')
 county_rr <- county_rr %>% rename_at('County', ~'Geo')
 county_rr$regs <- NULL
 county_rr$POP <- NULL
-
+county_rr$POP <- NULL
+county_rr$FIPS_code <- NULL
 
 
 scalar_rr <- data.frame(
-  Geo = c('United States',)
+  Geo = c('United States'),
   rr = c(mean(rr$rr, na.rm = TRUE))
 )
 
-
-
-
-#Dr. C, I need to combine census and eavs df by fips - they are both at county level, but census has geoID and eavs is county fips with leading 0s. 
-#After that, I need to calculate registration rate from each county (eavs A1a = registrants, census S2901 value = estimated total eligible voters in the county; would need to divide A1a/S2901) and then aggregate averages by all (US avg), among NE states (NE avg), among MA (MA avg) and then separate out MA counties
-
-
-
+scalar_rr <- bind_rows(scalar_rr, ne_rr, county_rr)
 ```
 
 #Protest
@@ -171,10 +171,19 @@ us_pcount <- data.frame()
 
 ```
 
-# Figure 2
+#Volunteer Rate
 ```{r}
-#civic access
+vr <- read_csv('ec data/CivicIndex.csv')
+vr <- vr %>% rename_at('Volunteer rate (percent)', ~'vr') 
+vr <- vr|> subset(select = c(vr,FIPS,Abbr))
 
+
+```
+
+#Data Visualization
+```{r}
+#us_ce = vr, vot, rr
+#county_ce = prot, vot, rr
 
 
 ```
@@ -307,11 +316,16 @@ civa <- civa %>% rename_at('lv', ~'Library visits per 10,000 residents')
 # Figure 3
 ```{r}
 #inequities
+
+
 ```
 
 # Figure 5
 ```{r}
 #load norfolk town, map w color by category and popn bubble
+
+
+
 ```
 
 
