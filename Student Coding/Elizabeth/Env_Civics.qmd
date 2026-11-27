@@ -19,7 +19,6 @@ install.packages("dplyr")
 install.packages("googlesheets4")
 install.packages("devtools")
 install.packages("totalcensus")
-
 ```
 
 ```{r}
@@ -35,7 +34,6 @@ library(dplyr)
 library(googlesheets4)
 library(devtools) 
 library(totalcensus)
-
 ```
 
 ## Github
@@ -56,12 +54,7 @@ devtools::install_github("countyhealthrankings/countyhealthR")
 
 
 
-# Figure 1
-```{r}
-#civic engagement
-
-```
-
+## Figure 1
 ##Data Tidying Figure 1
 
 #Voter Turnout
@@ -108,25 +101,74 @@ scalar_vot$fips <- stringr::str_replace_all(scalar_vot$fips, "\\s+", "")
 scalar_vot$state_fips <- NULL
 scalar_vot$county_fips <- NULL
 
-
 #fips of 00000 = USA all
 
 ```
 
 #Registration Rate
 ```{r}
-eavs <- read_csv('ec data/2024_EAVS_Tidy.csv')
+eavs <- read_csv('ec data/2024eavs.csv') |> subset(select = c(FIPSCode,State_Abbr,A1a))
+#eavs <- convert_fips_to_names(c(eavs$FIPSCode), states = c(eavs$State_Abbr), geo_header = "COUNTY")
 
-census <- read_csv('ec data/Census_Tidy.csv')
+eavs <- eavs %>%
+              separate(FIPSCode, into = c("FIPS_code", "Subdiv"), sep = 5)
+
+eavs_c <- summarise(eavs, regs = sum(A1a), .by = FIPS_code)
+
+eavs <- merge(eavs, eavs_c, by = 'FIPS_code')
+
+popn <- read_csv('ec data/LiteracyRates - County.csv') |> subset.data.frame(select = c(grpName,FIPS_code, POP, County), na.rm = TRUE) |> filter(grpName %in%  c('all')) 
+popn$grpName <- NULL 
+
+
+rr <- merge(eavs_c, popn, by = "FIPS_code")
+
+rr$rr <- (rr$reg / rr$POP)
+rr <- rr %>% rename_at('FIPS_code', ~'Geo')
+rr <- rr %>%
+              separate(Geo, into = c("State", "County"), sep = 2, remove = FALSE)
+#eavs <- convert_fips_to_names(c(eavs$FIPSCode), states = c(eavs$State_Abbr), geo_header = "COUNTY")
+rr$rr <- as.numeric(rr$rr)
+
+ne_rr <- rr |> filter(State %in%  c("25", "9", "23", "33", "50", "44"))
+
+ne_rr <- summarise(ne_rr, rr_avg = mean(rr), .by = State)
+ne_rr$State <- convert_fips_to_names(c("25", "09", "23", "33", "50", "44"), geo_header = "STATE")
+
+county_rr <- rr |> filter(State %in%  c("25")) |> filter(County %in%  c("001", "003", "005", "007", "009", "011", "013","015","017","019","021","023","025","027"))
+county_rr$County <- convert_fips_to_names(c("001", "003", "005", "007", "009", "011", "013","015","017","019","021","023","025","027"), states = c("MA"), geo_header = "COUNTY")
+county_rr$State <- NULL
+county_rr <- county_rr %>% rename_at('Geo', ~'FIPS_code')
+county_rr <- county_rr %>% rename_at('County', ~'Geo')
+county_rr$regs <- NULL
+county_rr$POP <- NULL
+
+
+
+scalar_rr <- data.frame(
+  Geo = c('United States',)
+  rr = c(mean(rr$rr, na.rm = TRUE))
+)
+
+
+
 
 #Dr. C, I need to combine census and eavs df by fips - they are both at county level, but census has geoID and eavs is county fips with leading 0s. 
 #After that, I need to calculate registration rate from each county (eavs A1a = registrants, census S2901 value = estimated total eligible voters in the county; would need to divide A1a/S2901) and then aggregate averages by all (US avg), among NE states (NE avg), among MA (MA avg) and then separate out MA counties
+
+
 
 ```
 
 #Protest
 ```{r}
 #See protest.qmd file for protest data analysis and coding
+
+state_pcount <- read_csv('ec data/us_pcount.csv')|> filter(state %in%  c("MA","CT","ME","NH","VT","RI")) |>
+
+us_pcount <- data.frame()
+
+
 ```
 
 # Figure 2
@@ -237,7 +279,6 @@ scalar_lvbb$Abbr <- NULL
 
 ```
 
-
 #Local News
 ```{r}
 scalar_ln <- read_sheet('https://docs.google.com/spreadsheets/d/1Xh72Rks4HVnRgbuBJMCQCfX1JgeOL9Cm8nFpEUDYRKc/edit?gid=0#gid=0')
@@ -251,6 +292,11 @@ scalar_ln <- read_sheet('https://docs.google.com/spreadsheets/d/1Xh72Rks4HVnRgbu
 civa <- scalar_ln |> inner_join((scalar_lr),by = join_by(Geo))
 civa <- civa |> inner_join((scalar_lvbb),by = join_by(Geo))
 civa <- civa |> inner_join((scalar_soc),by = join_by(Geo))
+
+civa <- civa %>% rename_at('Outlets', ~'Local News Outlets')
+civa <- civa %>% rename_at('Lit_A', ~'Literacy Score')
+civa <- civa %>% rename_at('bb', ~'Percent of households with broadband')
+civa <- civa %>% rename_at('lv', ~'Library visits per 10,000 residents')
 
 
 
